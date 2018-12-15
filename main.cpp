@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "Engine/WindowManager.h"
+#include "Engine/Shader.h"
 
 const int SCREEN_WIDTH = 1920;
 const int SCREEN_HEIGHT = 1080;
@@ -38,44 +39,7 @@ int main() {
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    std::ifstream vs_file("../shader.vert");
-    std::string vs_src((std::istreambuf_iterator<char>(vs_file)), std::istreambuf_iterator<char>());
-
-    std::ifstream fs_file("../shader.frag");
-    std::string fs_src((std::istreambuf_iterator<char>(fs_file)), std::istreambuf_iterator<char>());
-
-    const char *vs = vs_src.c_str();
-    const char *fs = fs_src.c_str();
-
-    glShaderSource(vertexShader, 1, &vs, nullptr);
-    glShaderSource(fragmentShader, 1, &fs, nullptr);
-
-    glCompileShader(vertexShader);
-    int compileOK;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &compileOK);
-    if(!compileOK) {
-        exit(1);
-    }
-
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compileOK);
-    if(!compileOK) {
-        exit(2);
-    }
-
-
-    GLuint shaderProgram = glCreateProgram();
-
-    glAttachShader(shaderProgram, fragmentShader);
-    glAttachShader(shaderProgram, vertexShader);
-
-    glDeleteShader( vertexShader );
-    glDeleteShader( fragmentShader );
-
-    glLinkProgram(shaderProgram);
+    Engine::Shader simpleShader("../shader.vert", "../shader.frag");
 
     GLuint vao;
 
@@ -92,7 +56,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_CULL_FACE); // Disable backface culling atm
 
-        glUseProgram( shaderProgram );
+        simpleShader.use();
 
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);

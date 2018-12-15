@@ -86,7 +86,7 @@ void WindowManager::setFullscreen() {
     SDL_SetWindowFullscreen(this->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
-SDL_Window *WindowManager::getWindow() {
+SDL_Window *WindowManager::getWindow() const {
     return this->window;
 }
 

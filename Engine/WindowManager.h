@@ -25,7 +25,7 @@ public:
     void setFullscreen();
 
     /* Getters */
-    SDL_Window* getWindow();
+    SDL_Window* getWindow() const;
 
 private:
 
