@@ -8,6 +8,7 @@
 
 #include "Engine/WindowManager.h"
 #include "Engine/Shader.h"
+#include "Engine/Camera.h"
 
 const int SCREEN_WIDTH = 1920;
 const int SCREEN_HEIGHT = 1080;
@@ -50,59 +51,78 @@ int main() {
 
     float backgroundColor[] = {0.2f, 0.2f, 0.8f};
 
+    Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
+    camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+
     while (running) {
+
+        camera.update();
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_CULL_FACE); // Disable backface culling atm
 
         simpleShader.use();
+        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView());
 
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SDL_GL_SwapWindow(window);
 
-        SDL_PollEvent(&event);
 
-        if (event.type == SDL_QUIT) {
-            running = false;
-        } else if (event.type == SDL_KEYDOWN) {
+        while (SDL_PollEvent(&event)) {
 
-            switch (event.key.keysym.sym) {
+            if (event.type == SDL_QUIT || (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE)) {
+                running = false;
+            } else if (event.type == SDL_KEYUP) {
 
-                case SDLK_0:
-                    backgroundColor[0] = 0.8f;
-                    backgroundColor[1] = 0.2f;
-                    backgroundColor[2] = 0.2f;
-                    break;
-                case SDLK_1:
-                    backgroundColor[0] = 0.2f;
-                    backgroundColor[1] = 0.8f;
-                    backgroundColor[2] = 0.2f;
-                    break;
-                case SDLK_2:
-                    backgroundColor[0] = 0.2f;
-                    backgroundColor[1] = 0.2f;
-                    backgroundColor[2] = 0.8f;
-                    break;
+                switch (event.key.keysym.sym) {
 
-                case SDLK_ESCAPE:
-                    running = false;
-                    break;
+                    case SDLK_0:
+                        backgroundColor[0] = 0.8f;
+                        backgroundColor[1] = 0.2f;
+                        backgroundColor[2] = 0.2f;
+                        break;
+                    case SDLK_1:
+                        backgroundColor[0] = 0.2f;
+                        backgroundColor[1] = 0.8f;
+                        backgroundColor[2] = 0.2f;
+                        break;
+                    case SDLK_2:
+                        backgroundColor[0] = 0.2f;
+                        backgroundColor[1] = 0.2f;
+                        backgroundColor[2] = 0.8f;
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event.type == SDL_MOUSEMOTION) {
+                static int prev_xcoord = event.motion.x;
+                static int prev_ycoord = event.motion.y;
+                int delta_x = event.motion.x - prev_xcoord;
+                int delta_y = event.motion.y - prev_ycoord;
 
-                default:
-                    break;
+                //if (event.button.button & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                camera.rotate(delta_x, delta_y);
+                prev_xcoord = event.motion.x;
+                prev_ycoord = event.motion.y;
             }
+        }
 
-        } else if (event.type == SDL_WINDOWEVENT){
-            switch (event.window.event){
+        const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
 
-                //case SDL_WINDOWEVENT_RESIZED:
-                //    std::cout << "Resized" << std::endl; break;
-
-                default: break;
-            }
+        if (keyState[SDL_SCANCODE_W]) {
+            camera.moveForward();
+        }
+        if (keyState[SDL_SCANCODE_S]) {
+            camera.moveBack();
+        }
+        if (keyState[SDL_SCANCODE_A]) {
+            camera.moveLeft();
+        }
+        if (keyState[SDL_SCANCODE_D]) {
+            camera.moveRight();
         }
 
         glUseProgram( 0 );
