@@ -32,7 +32,7 @@ int main() {
     float backgroundColor[] = {0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
     Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, 0.0, 0.0f));
     Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, 0.0, 16.0f));

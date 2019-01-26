@@ -77,53 +77,65 @@ void Chunk::updateVbo() {
                 uint8_t type = static_cast<uint8_t>(typ);
 
                 // - X
-                vertices[i++] = vertex_data(x, y, z, type);
-                vertices[i++] = vertex_data(x, y, z + 1, type);
-                vertices[i++] = vertex_data(x, y + 1, z, type);
-                vertices[i++] = vertex_data(x, y + 1, z, type);
-                vertices[i++] = vertex_data(x, y, z + 1, type);
-                vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+
+                if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x, y, z, type);
+                    vertices[i++] = vertex_data(x, y, z + 1, type);
+                    vertices[i++] = vertex_data(x, y + 1, z, type);
+                    vertices[i++] = vertex_data(x, y + 1, z, type);
+                    vertices[i++] = vertex_data(x, y, z + 1, type);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+                }
 
                 // + X
-                vertices[i++] = vertex_data(x + 1, y, z, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                if (x == SIZE_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x + 1, y, z, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                }
 
                 // - Y
-                vertices[i++] = vertex_data(x, y, z, type);
-                vertices[i++] = vertex_data(x + 1, y, z, type);
-                vertices[i++] = vertex_data(x, y, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y, z, type);
-                vertices[i++] = vertex_data(x + 1, y, z + 1,type);
-                vertices[i++] = vertex_data(x, y, z + 1, type);
+                if (y == 0 || this->get(x,y-1,z) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x, y, z, type);
+                    vertices[i++] = vertex_data(x + 1, y, z, type);
+                    vertices[i++] = vertex_data(x, y, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y, z, type);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                    vertices[i++] = vertex_data(x, y, z + 1, type);
+                }
 
                 // + Y
-                vertices[i++] = vertex_data(x, y + 1, z, type);
-                vertices[i++] = vertex_data(x, y + 1, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z, type);
-                vertices[i++] = vertex_data(x, y + 1, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
+                if (y == SIZE_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x, y + 1, z, type);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, type);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
+                }
 
                 // - Z
-                vertices[i++] = vertex_data(x, y, z, type);
-                vertices[i++] = vertex_data(x, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y, z, type);
-                vertices[i++] = vertex_data(x, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z, type);
-                vertices[i++] = vertex_data(x + 1, y, z, type);
+                if (z == 0 || this->get(x,y,z-1) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x, y, z, type);
+                    vertices[i++] = vertex_data(x, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y, z, type);
+                    vertices[i++] = vertex_data(x, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, type);
+                    vertices[i++] = vertex_data(x + 1, y, z, type);
+                }
 
                 // + Z
-                vertices[i++] = vertex_data(x, y, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y, z + 1, type);
-                vertices[i++] = vertex_data(x, y + 1, z + 1, type);
-                vertices[i++] = vertex_data(x, y + 1, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y, z + 1, type);
-                vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
-
+                if (z == SIZE_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
+                    vertices[i++] = vertex_data(x, y, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, type);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, type);
+                }
             }
         }
     }
