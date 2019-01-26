@@ -8,6 +8,7 @@
 
 #include "Engine/WindowManager.h"
 #include "Engine/Shader.h"
+#include "Engine/Chunk.h"
 #include "Engine/Camera.h"
 
 const int SCREEN_WIDTH = 1920;
@@ -26,33 +27,34 @@ int main() {
     SDL_GetWindowSize(window, &w, &h);
     glViewport(0, 0, w, h); // Set viewport
 
-    float vertices[] = {
-            //	 X      Y     Z
-            0.0f,   0.5f, 1.0f,		// v0
-            -0.5f,  -0.5f, 1.0f,	// v1
-            0.5f,  -0.5f, 1.0f		// v2
-    };
-
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     Engine::Shader simpleShader("../shader.vert", "../shader.frag");
-
-    GLuint vao;
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-    glEnableVertexAttribArray(0);
 
     float backgroundColor[] = {0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+
+    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, 0.0, 0.0f));
+    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, 0.0, 16.0f));
+
+    for (int i = 0; i < SIZE_X; i++) {
+        for (int k = 0; k < SIZE_Z; k++){
+            chunk->set(i, 0, k, Engine::BlockType::GRASS);
+            chunk->set(i, 1, k, Engine::BlockType::GRASS);
+            chunk->set(i, 2, k, Engine::BlockType::GRASS);
+        }
+    }
+
+    for (int i = 0; i < SIZE_X; i++){
+        for (int j = 3; j < SIZE_Y; j++){
+            for (int k = 0; k < SIZE_Z; k++){
+                chunk->set(i, j, k, Engine::BlockType::STONE);
+                chunk1->set(i, j, k, Engine::BlockType::GRASS);
+            }
+        }
+    }
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     while (running) {
 
@@ -60,13 +62,16 @@ int main() {
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_CULL_FACE); // Disable backface culling atm
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
 
         simpleShader.use();
-        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView());
 
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->modelWorldMatrix);
+        chunk->render();
+
+        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
+        chunk1->render();
 
         SDL_GL_SwapWindow(window);
 
@@ -103,7 +108,6 @@ int main() {
                 int delta_x = event.motion.x - prev_xcoord;
                 int delta_y = event.motion.y - prev_ycoord;
 
-                //if (event.button.button & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 camera.rotate(delta_x, delta_y);
                 prev_xcoord = event.motion.x;
                 prev_ycoord = event.motion.y;
@@ -128,7 +132,6 @@ int main() {
         glUseProgram( 0 );
 
     }
-    std::cout << "Hello, World!" << std::endl;
 
     SDL_Quit();
 
