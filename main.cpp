@@ -6,20 +6,42 @@
 #include <GL/glu.h>
 #include <fstream>
 
+#include "lib/imgui/imgui.h"
+#include "imgui_impl_sdl_gl3.h"
+
 #include "Engine/WindowManager.h"
 #include "Engine/Shader.h"
 #include "Engine/Chunk.h"
 #include "Engine/Camera.h"
 
+
 const int SCREEN_WIDTH = 1920;
 const int SCREEN_HEIGHT = 1080;
+
+struct Config {
+    bool wireframe = false;
+};
+
+void renderConfig(SDL_Window* window, Config& config){
+    ImGui_ImplSdlGL3_NewFrame(window);
+    ImGui::Text("Configuration");
+    ImGui::Checkbox("Wireframe Mode", &config.wireframe);
+
+    ImGui::Render();
+
+}
 
 int main() {
 
     Engine::WindowManager windowManager("Test", SCREEN_WIDTH, SCREEN_HEIGHT);
     SDL_Window* window = windowManager.getWindow();
 
+    ImGui_ImplSdlGL3_Init(window);
+
+    Config config{};
+
     bool running = true;
+    bool showConfig = false;
 
     SDL_Event event{};
 
@@ -54,11 +76,9 @@ int main() {
         }
     }
 
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
     while (running) {
 
-        camera.update();
+        if (!showConfig) camera.update();
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -73,10 +93,16 @@ int main() {
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
         chunk1->render();
 
+        glUseProgram( 0 );
+
+        if (showConfig)
+            renderConfig(window, config);
+
         SDL_GL_SwapWindow(window);
 
-
         while (SDL_PollEvent(&event)) {
+
+            ImGui_ImplSdlGL3_ProcessEvent(&event);
 
             if (event.type == SDL_QUIT || (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE)) {
                 running = false;
@@ -99,6 +125,9 @@ int main() {
                         backgroundColor[1] = 0.2f;
                         backgroundColor[2] = 0.8f;
                         break;
+                    case SDLK_q:
+                        showConfig = !showConfig;
+                        break;
                     default:
                         break;
                 }
@@ -116,21 +145,26 @@ int main() {
 
         const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
 
-        if (keyState[SDL_SCANCODE_W]) {
-            camera.moveForward();
-        }
-        if (keyState[SDL_SCANCODE_S]) {
-            camera.moveBack();
-        }
-        if (keyState[SDL_SCANCODE_A]) {
-            camera.moveLeft();
-        }
-        if (keyState[SDL_SCANCODE_D]) {
-            camera.moveRight();
+        if (!showConfig) {
+            if (keyState[SDL_SCANCODE_W]) {
+                camera.moveForward();
+            }
+            if (keyState[SDL_SCANCODE_S]) {
+                camera.moveBack();
+            }
+            if (keyState[SDL_SCANCODE_A]) {
+                camera.moveLeft();
+            }
+            if (keyState[SDL_SCANCODE_D]) {
+                camera.moveRight();
+            }
         }
 
-        glUseProgram( 0 );
-
+        if (config.wireframe){
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        } else {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        }
     }
 
     SDL_Quit();
