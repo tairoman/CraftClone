@@ -70,10 +70,6 @@ void Chunk::updateVbo() {
                     continue;
                 }
 
-                //if (x > 0 && y > 0 && z > 0 && x < SIZE_X && y < SIZE_Y && z < SIZE_Z){
-                //if (!this->anyAirNeighbor(x,y,z)) continue;
-                //}
-
                 uint8_t type = static_cast<uint8_t>(typ);
 
                 // - X
@@ -145,15 +141,6 @@ void Chunk::updateVbo() {
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
     glBufferData(GL_ARRAY_BUFFER, i * sizeof(vertex_data), vertices, GL_STATIC_DRAW);
 
-}
-
-bool Chunk::anyAirNeighbor(int x, int y, int z) {
-    if (this->blocks[x+1][y][z] == BlockType::AIR) return true;
-    if (this->blocks[x-1][y][z] == BlockType::AIR) return true;
-    if (this->blocks[x][y-1][z] == BlockType::AIR) return true;
-    if (this->blocks[x][y+1][z] == BlockType::AIR) return true;
-    if (this->blocks[x][y][z+1] == BlockType::AIR) return true;
-    return this->blocks[x][y][z - 1] == BlockType::AIR;
 }
 
 }
