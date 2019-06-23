@@ -37,11 +37,11 @@ public:
 private:
 
     void updateVbo();
-    bool anyAirNeighbor(int x, int y, int z);
 
     BlockType blocks[SIZE_X][SIZE_Y][SIZE_Z];
     GLuint vbo;
     GLuint vao;
+    GLuint texture;
     bool changed;
     unsigned int vertices;
 
