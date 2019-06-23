@@ -70,10 +70,8 @@ void Shader::setUniform(const std::string &name, glm::mat4 value) const {
     glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0].x);
 }
 
-void Shader::setUniform(const std::string &name, glm::vec2* value, std::size_t length) const {
-    //for (std::size_t i = 0; i < length; i++){
-        glUniform2fv(glGetUniformLocation(this->id, name.c_str()), length, &value[0].x);
-    //}
+void Shader::setUniform(const std::string &name, float* value, std::size_t length, std::size_t stride) const {
+    glUniform2fv(glGetUniformLocation(this->id, name.c_str()), length / stride, value);
 }
 
 }

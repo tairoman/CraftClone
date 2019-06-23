@@ -31,9 +31,9 @@ void renderConfig(SDL_Window* window, Config& config){
 
 }
 
-glm::vec2 texLookup[6] = {
-        glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f),
-        glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f)
+float texLookup[12] = {
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f
 };
 
 int main() {
@@ -93,11 +93,11 @@ int main() {
         simpleShader.use();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, 6);
+        simpleShader.setUniform("texLookup", texLookup, 12);
         chunk->render();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, 6);
+        simpleShader.setUniform("texLookup", texLookup, 12);
         chunk1->render();
 
         glUseProgram( 0 );

@@ -26,7 +26,7 @@ public:
     void setUniform(const std::string &name, int value) const;
     void setUniform(const std::string &name, float value) const;
     void setUniform(const std::string &name, glm::mat4 value) const;
-    void setUniform(const std::string &name, glm::vec2* value, std::size_t length) const;
+    void setUniform(const std::string &name, float* value, std::size_t length, std::size_t stride = 2) const;
 
 private:
 
