@@ -53,6 +53,9 @@ void WindowManager::initialize(const std::string& title){
         exit(0);
     }
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_WarpMouseInWindow(this->window, this->width / 2, this->height / 2);
+
     // Create OpenGL context
     this->context = SDL_GL_CreateContext(this->window);
     if (this->context == nullptr) {

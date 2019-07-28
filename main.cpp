@@ -61,19 +61,19 @@ int main() {
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
-    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, 0.0, 0.0f));
-    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, 0.0, 16.0f));
+    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f));
+    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f));
 
     for (int i = 0; i < SIZE_X; i++) {
         for (int k = 0; k < SIZE_Z; k++){
-            chunk->set(i, 0, k, Engine::BlockType::GRASS);
-            chunk->set(i, 1, k, Engine::BlockType::GRASS);
-            chunk->set(i, 2, k, Engine::BlockType::GRASS);
+            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::GRASS);
+            chunk->set(i, SIZE_Y - 2, k, Engine::BlockType::GRASS);
+            chunk->set(i, SIZE_Y - 3, k, Engine::BlockType::GRASS);
         }
     }
 
     for (int i = 0; i < SIZE_X; i++){
-        for (int j = 3; j < SIZE_Y; j++){
+        for (int j = 0; j < SIZE_Y - 3; j++){
             for (int k = 0; k < SIZE_Z; k++){
                 chunk->set(i, j, k, Engine::BlockType::STONE);
                 chunk1->set(i, j, k, Engine::BlockType::GRASS);
@@ -139,14 +139,7 @@ int main() {
                         break;
                 }
             } else if (event.type == SDL_MOUSEMOTION) {
-                static int prev_xcoord = event.motion.x;
-                static int prev_ycoord = event.motion.y;
-                int delta_x = event.motion.x - prev_xcoord;
-                int delta_y = event.motion.y - prev_ycoord;
-
-                camera.rotate(delta_x, delta_y);
-                prev_xcoord = event.motion.x;
-                prev_ycoord = event.motion.y;
+                camera.rotate(event.motion.xrel, event.motion.yrel);
             }
         }
 
@@ -164,6 +157,12 @@ int main() {
             }
             if (keyState[SDL_SCANCODE_D]) {
                 camera.moveRight();
+            }
+            if (keyState[SDL_SCANCODE_LSHIFT]) {
+                camera.setSpeedMultiplier(10);
+            }
+            if (!keyState[SDL_SCANCODE_LSHIFT]) {
+                camera.setSpeedMultiplier(1);
             }
         }
 

@@ -55,7 +55,7 @@ void Camera::moveLeft() {
 }
 
 void Camera::moveLeft(float speed) {
-    this->position -= glm::normalize(glm::cross(this->direction, this->up)) * speed;
+    this->position -= glm::normalize(glm::cross(this->direction, this->up)) * this->speedMultiplier * speed;
 }
 
 void Camera::moveRight() {
@@ -63,7 +63,7 @@ void Camera::moveRight() {
 }
 
 void Camera::moveRight(float speed) {
-    this->position += glm::normalize(glm::cross(this->direction, this->up)) * speed;
+    this->position += glm::normalize(glm::cross(this->direction, this->up)) * this->speedMultiplier * speed;
 }
 
 void Camera::moveForward() {
@@ -71,7 +71,7 @@ void Camera::moveForward() {
 }
 
 void Camera::moveForward(float speed) {
-    this->position += speed * this->direction;
+    this->position += this->speedMultiplier * speed * this->direction;
 }
 
 void Camera::moveBack() {
@@ -79,7 +79,7 @@ void Camera::moveBack() {
 }
 
 void Camera::moveBack(float speed) {
-    this->position -= speed * this->direction;
+    this->position -= this->speedMultiplier * speed * this->direction;
 }
 
 void Camera::setMoveSpeed(float speed) {
@@ -96,6 +96,10 @@ glm::mat4 Camera::getProjection() {
 
 glm::mat4 Camera::getView() {
     return this->viewMatrix;
+}
+
+void Camera::setSpeedMultiplier(float mult) {
+    this->speedMultiplier = mult;
 }
 
 

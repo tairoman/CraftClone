@@ -34,6 +34,7 @@ Chunk::Chunk(glm::vec3 pos) {
     }
 
     int w, h, comp;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char* image = stbi_load("../tiles.png", &w, &h, &comp, STBI_rgb_alpha);
     glGenTextures(1, &texture);
 
@@ -93,7 +94,6 @@ void Chunk::updateVbo() {
                 uint8_t type = static_cast<uint8_t>(typ);
 
                 // - X
-
                 if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x, y, z, 0);
                     vertices[i++] = vertex_data(x, y, z + 1, 1);
@@ -105,22 +105,22 @@ void Chunk::updateVbo() {
 
                 // + X
                 if (x == SIZE_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x + 1, y, z, 0);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 1);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 2);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 3);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 4);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 5);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, 0);
+                    vertices[i++] = vertex_data(x + 1, y, z, 1);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 2);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 3);
+                    vertices[i++] = vertex_data(x + 1, y, z, 4);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, 5);
                 }
 
                 // - Y
                 if (y == 0 || this->get(x,y-1,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y, z, 0);
-                    vertices[i++] = vertex_data(x + 1, y, z, 1);
-                    vertices[i++] = vertex_data(x, y, z + 1, 2);
-                    vertices[i++] = vertex_data(x + 1, y, z, 3);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 4);
-                    vertices[i++] = vertex_data(x, y, z + 1, 5);
+                    vertices[i++] = vertex_data(x, y, z + 1, 0);
+                    vertices[i++] = vertex_data(x, y, z, 1);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, 2);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, 3);
+                    vertices[i++] = vertex_data(x, y, z, 4);
+                    vertices[i++] = vertex_data(x + 1, y, z, 5);
                 }
 
                 // + Y
@@ -135,12 +135,12 @@ void Chunk::updateVbo() {
 
                 // - Z
                 if (z == 0 || this->get(x,y,z-1) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y, z, 0);
-                    vertices[i++] = vertex_data(x, y + 1, z, 1);
-                    vertices[i++] = vertex_data(x + 1, y, z, 2);
-                    vertices[i++] = vertex_data(x, y + 1, z, 3);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 4);
-                    vertices[i++] = vertex_data(x + 1, y, z, 5);
+                    vertices[i++] = vertex_data(x + 1, y, z, 0);
+                    vertices[i++] = vertex_data(x, y, z, 1);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, 2);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, 3);
+                    vertices[i++] = vertex_data(x, y, z, 4);
+                    vertices[i++] = vertex_data(x, y + 1, z, 5);
                 }
 
                 // + Z
