@@ -6,6 +6,9 @@
 #include <GL/glu.h>
 #include <fstream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "lib/stb_image.h"
+
 #include "lib/imgui/imgui.h"
 #include "imgui_impl_sdl_gl3.h"
 
@@ -31,10 +34,21 @@ void renderConfig(SDL_Window* window, Config& config){
 
 }
 
-float texLookup[12] = {
+float texLookup[24] = {
+
+        /* DIRT */
+        0.634f, 0.9375f,
+        0.759f, 0.9375f,
+        0.634f, 1.0f,
+        0.634f, 1.0f,
+        0.759f, 0.9375f,
+        0.759f, 1.0f,
+
+
         0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f
 };
+
 
 int main() {
 
@@ -44,6 +58,21 @@ int main() {
     ImGui_ImplSdlGL3_Init(window);
 
     Config config{};
+
+    GLuint texture;
+    int textureAtlasWidth, textureAtlasHeight, comp;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* image = stbi_load("../tiles.png", &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
+    glGenTextures(1, &texture);
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureAtlasWidth, textureAtlasHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    free(image);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     bool running = true;
     bool showConfig = false;
@@ -61,14 +90,14 @@ int main() {
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
-    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f));
-    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f));
-
-    for (int i = 0; i < SIZE_X; i++) {
+    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
+    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
+    chunk->set(0, SIZE_Y - 1, 0, Engine::BlockType::DIRT);
+    /*for (int i = 0; i < SIZE_X; i++) {
         for (int k = 0; k < SIZE_Z; k++){
-            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::GRASS);
-            chunk->set(i, SIZE_Y - 2, k, Engine::BlockType::GRASS);
-            chunk->set(i, SIZE_Y - 3, k, Engine::BlockType::GRASS);
+            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::DIRT);
+            chunk->set(i, SIZE_Y - 2, k, Engine::BlockType::DIRT);
+            chunk->set(i, SIZE_Y - 3, k, Engine::BlockType::DIRT);
         }
     }
 
@@ -76,10 +105,10 @@ int main() {
         for (int j = 0; j < SIZE_Y - 3; j++){
             for (int k = 0; k < SIZE_Z; k++){
                 chunk->set(i, j, k, Engine::BlockType::STONE);
-                chunk1->set(i, j, k, Engine::BlockType::GRASS);
+                chunk1->set(i, j, k, Engine::BlockType::DIRT);
             }
         }
-    }
+    }*/
 
     while (running) {
 

@@ -1,16 +1,20 @@
 
 #include <GL/glew.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "../lib/stb_image.h"
-
 #include "Chunk.h"
 
 namespace Engine {
 
+std::size_t atlasLookup(BlockType type, BlockSide side) {
+    switch (type) {
+        case Engine::BlockType::DIRT: return 0;
+    }
+    return 0;
+};
+
 using vertex_data = glm::u8vec4;
 
-Chunk::Chunk(glm::vec3 pos) {
+Chunk::Chunk(glm::vec3 pos, GLuint texture) {
 
     this->modelWorldMatrix = glm::translate(this->modelWorldMatrix, pos);
 
@@ -33,19 +37,7 @@ Chunk::Chunk(glm::vec3 pos) {
         }
     }
 
-    int w, h, comp;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* image = stbi_load("../tiles.png", &w, &h, &comp, STBI_rgb_alpha);
-    glGenTextures(1, &texture);
-
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    free(image);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
+    this->texture = texture;
 
 }
 
@@ -91,66 +83,68 @@ void Chunk::updateVbo() {
                     continue;
                 }
 
-                uint8_t type = static_cast<uint8_t>(typ);
+                std::size_t offset_side = atlasLookup(this->get(x,y,z), BlockSide::SIDE);
+                std::size_t offset_top = atlasLookup(this->get(x,y,z), BlockSide::TOP);
+                std::size_t offset_bottom = atlasLookup(this->get(x,y,z), BlockSide::BOTTOM);
 
                 // - X
                 if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y, z, 0);
-                    vertices[i++] = vertex_data(x, y, z + 1, 1);
-                    vertices[i++] = vertex_data(x, y + 1, z, 2);
-                    vertices[i++] = vertex_data(x, y + 1, z, 3);
-                    vertices[i++] = vertex_data(x, y, z + 1, 4);
-                    vertices[i++] = vertex_data(x, y + 1, z + 1, 5);
+                    vertices[i++] = vertex_data(x, y, z, offset_side + 0);
+                    vertices[i++] = vertex_data(x, y, z + 1, offset_side + 1);
+                    vertices[i++] = vertex_data(x, y + 1, z, offset_side + 2);
+                    vertices[i++] = vertex_data(x, y + 1, z, offset_side + 3);
+                    vertices[i++] = vertex_data(x, y, z + 1, offset_side + 4);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 5);
                 }
 
                 // + X
                 if (x == SIZE_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 0);
-                    vertices[i++] = vertex_data(x + 1, y, z, 1);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 2);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 3);
-                    vertices[i++] = vertex_data(x + 1, y, z, 4);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 5);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 0);
+                    vertices[i++] = vertex_data(x + 1, y, z, offset_side + 1);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 2);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 3);
+                    vertices[i++] = vertex_data(x + 1, y, z, offset_side + 4);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 5);
                 }
 
                 // - Y
                 if (y == 0 || this->get(x,y-1,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y, z + 1, 0);
-                    vertices[i++] = vertex_data(x, y, z, 1);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 2);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 3);
-                    vertices[i++] = vertex_data(x, y, z, 4);
-                    vertices[i++] = vertex_data(x + 1, y, z, 5);
+                    vertices[i++] = vertex_data(x, y, z + 1, offset_bottom + 0);
+                    vertices[i++] = vertex_data(x, y, z, offset_bottom + 1);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, offset_bottom + 2);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, offset_bottom + 3);
+                    vertices[i++] = vertex_data(x, y, z, offset_bottom + 4);
+                    vertices[i++] = vertex_data(x + 1, y, z, offset_bottom + 5);
                 }
 
                 // + Y
                 if (y == SIZE_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y + 1, z, 0);
-                    vertices[i++] = vertex_data(x, y + 1, z + 1, 1);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 2);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 3);
-                    vertices[i++] = vertex_data(x, y + 1, z + 1, 4);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 5);
+                    vertices[i++] = vertex_data(x, y + 1, z, offset_top + 0);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 1);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 2);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 3);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 4);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_top + 5);
                 }
 
                 // - Z
                 if (z == 0 || this->get(x,y,z-1) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x + 1, y, z, 0);
-                    vertices[i++] = vertex_data(x, y, z, 1);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 2);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z, 3);
-                    vertices[i++] = vertex_data(x, y, z, 4);
-                    vertices[i++] = vertex_data(x, y + 1, z, 5);
+                    vertices[i++] = vertex_data(x + 1, y, z, offset_side + 0);
+                    vertices[i++] = vertex_data(x, y, z, offset_side + 1);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 2);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 3);
+                    vertices[i++] = vertex_data(x, y, z, offset_side + 4);
+                    vertices[i++] = vertex_data(x, y + 1, z, offset_side + 5);
                 }
 
                 // + Z
                 if (z == SIZE_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
-                    vertices[i++] = vertex_data(x, y, z + 1, 0);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 1);
-                    vertices[i++] = vertex_data(x, y + 1, z + 1, 2);
-                    vertices[i++] = vertex_data(x, y + 1, z + 1, 3);
-                    vertices[i++] = vertex_data(x + 1, y, z + 1, 4);
-                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, 5);
+                    vertices[i++] = vertex_data(x, y, z + 1, offset_side + 0);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 1);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 2);
+                    vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 3);
+                    vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 4);
+                    vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 5);
                 }
             }
         }

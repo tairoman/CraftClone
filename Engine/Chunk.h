@@ -17,14 +17,19 @@ namespace Engine {
 enum class BlockType : uint8_t {
     AIR,
     GRASS,
+    DIRT,
     STONE,
+};
+
+enum class BlockSide {
+    TOP, BOTTOM, SIDE
 };
 
 class Chunk {
 
 public:
 
-    Chunk(glm::vec3 pos);
+    Chunk(glm::vec3 pos, GLuint texture);
     ~Chunk();
 
     BlockType get(int x, int y, int z);
