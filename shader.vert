@@ -1,10 +1,12 @@
 #version 420
 
+#define NUM_BLOCK_TYPES 4
+
 layout (location = 0) in vec4 pos;
 
 uniform mat4 modelViewProjectionMatrix;
 
-uniform vec2 texLookup[6];
+uniform vec2 texLookup[NUM_BLOCK_TYPES*6];
 
 out vec3 color;
 out vec2 texCoord;

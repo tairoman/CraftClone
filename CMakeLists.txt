@@ -12,5 +12,5 @@ file(GLOB imgui
         "imgui_impl_sdl_gl3.cpp"
         )
 
-set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h)
+set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h Engine/World.cpp Engine/World.h)
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})

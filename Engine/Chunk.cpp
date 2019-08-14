@@ -7,7 +7,14 @@ namespace Engine {
 
 std::size_t atlasLookup(BlockType type, BlockSide side) {
     switch (type) {
-        case Engine::BlockType::DIRT: return 0;
+        case Engine::BlockType::GRASS:
+            switch(side) {
+                case Engine::BlockSide::SIDE: return 0 * 6;
+                case Engine::BlockSide::TOP: return 1 * 6;
+                case Engine::BlockSide::BOTTOM: return 2 * 6;
+            }
+        case Engine::BlockType::DIRT: return 2*6;
+        case Engine::BlockType::STONE: return 3*6;
     }
     return 0;
 };

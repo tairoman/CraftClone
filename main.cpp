@@ -34,19 +34,44 @@ void renderConfig(SDL_Window* window, Config& config){
 
 }
 
-float texLookup[24] = {
+#define NUM_BLOCK_TYPES 4
 
-        /* DIRT */
-        0.634f, 0.9375f,
+float texLookup[NUM_BLOCK_TYPES*12] = {
+
+        /* 0. GRASS SIDE */
+        0.635f, 0.9375f,
         0.759f, 0.9375f,
-        0.634f, 1.0f,
-        0.634f, 1.0f,
+        0.635f, 1.0f,
+        0.635f, 1.0f,
         0.759f, 0.9375f,
         0.759f, 1.0f,
 
+        /* 1. GRASS TOP */
 
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f
+        0.507f, 0.557f,
+        0.633f, 0.557f,
+        0.507f, 0.619f,
+        0.507f, 0.619f,
+        0.633f, 0.557f,
+        0.633f, 0.619f,
+
+        /* 2. DIRT */
+
+        0.634f, 0.875f,
+        0.759f, 0.875f,
+        0.634f, 0.936f,
+        0.634f, 0.936f,
+        0.759f, 0.875f,
+        0.759f, 0.936f,
+
+        /* 3. STONE */
+
+        0.254f, 0.62f,
+        0.379f, 0.62f,
+        0.254f, 0.683f,
+        0.254f, 0.683f,
+        0.379f, 0.62f,
+        0.379f, 0.683f,
 };
 
 
@@ -92,10 +117,9 @@ int main() {
 
     Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
     Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
-    chunk->set(0, SIZE_Y - 1, 0, Engine::BlockType::DIRT);
-    /*for (int i = 0; i < SIZE_X; i++) {
+    for (int i = 0; i < SIZE_X; i++) {
         for (int k = 0; k < SIZE_Z; k++){
-            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::DIRT);
+            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::GRASS);
             chunk->set(i, SIZE_Y - 2, k, Engine::BlockType::DIRT);
             chunk->set(i, SIZE_Y - 3, k, Engine::BlockType::DIRT);
         }
@@ -108,7 +132,7 @@ int main() {
                 chunk1->set(i, j, k, Engine::BlockType::DIRT);
             }
         }
-    }*/
+    }
 
     while (running) {
 
@@ -122,11 +146,11 @@ int main() {
         simpleShader.use();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, 12);
+        simpleShader.setUniform("texLookup", texLookup, NUM_BLOCK_TYPES*12);
         chunk->render();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, 12);
+        simpleShader.setUniform("texLookup", texLookup, NUM_BLOCK_TYPES*12);
         chunk1->render();
 
         glUseProgram( 0 );
