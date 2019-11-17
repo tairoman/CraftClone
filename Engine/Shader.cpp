@@ -2,6 +2,8 @@
 #include <fstream>
 #include "Shader.h"
 
+#include <vector>
+
 namespace Engine {
 
 
@@ -27,7 +29,18 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
     int ok;
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
     if(!ok) {
-        fprintf(stderr, "%s\n", "Failed to compile vertex shader");
+	    GLint maxLength = 0;
+	    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+        std::vector<GLchar> errorLog(maxLength);
+	    glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &errorLog[0]);
+
+        std::cerr << "Failed to compile vertex shader:\n\t";
+        for (auto ch : errorLog) {
+            std::cerr << ch;
+        }
+        std::cerr << "\n";
+        
         exit(0);
     }
 

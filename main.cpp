@@ -87,7 +87,14 @@ int main() {
     GLuint texture;
     int textureAtlasWidth, textureAtlasHeight, comp;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* image = stbi_load("../tiles.png", &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
+    auto tilesFile = "assets/tiles.png";
+    unsigned char* image = stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
+
+    if (image == NULL) {
+        std::cerr << tilesFile << " could not be loaded.\n";
+        exit(0);
+    } 
+
     glGenTextures(1, &texture);
 
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -108,7 +115,7 @@ int main() {
     SDL_GetWindowSize(window, &w, &h);
     glViewport(0, 0, w, h); // Set viewport
 
-    Engine::Shader simpleShader("../shader.vert", "../shader.frag");
+    Engine::Shader simpleShader("shaders/shader.vert", "shaders/shader.frag");
 
     float backgroundColor[] = {0.2f, 0.2f, 0.8f};
 
@@ -117,17 +124,17 @@ int main() {
 
     Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
     Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
-    for (int i = 0; i < SIZE_X; i++) {
-        for (int k = 0; k < SIZE_Z; k++){
-            chunk->set(i, SIZE_Y - 1, k, Engine::BlockType::GRASS);
-            chunk->set(i, SIZE_Y - 2, k, Engine::BlockType::DIRT);
-            chunk->set(i, SIZE_Y - 3, k, Engine::BlockType::DIRT);
+    for (int i = 0; i < BLK_SIZE_X; i++) {
+        for (int k = 0; k < BLK_SIZE_Z; k++){
+            chunk->set(i, BLK_SIZE_Y - 1, k, Engine::BlockType::GRASS);
+            chunk->set(i, BLK_SIZE_Y - 2, k, Engine::BlockType::DIRT);
+            chunk->set(i, BLK_SIZE_Y - 3, k, Engine::BlockType::DIRT);
         }
     }
 
-    for (int i = 0; i < SIZE_X; i++){
-        for (int j = 0; j < SIZE_Y - 3; j++){
-            for (int k = 0; k < SIZE_Z; k++){
+    for (int i = 0; i < BLK_SIZE_X; i++){
+        for (int j = 0; j < BLK_SIZE_Y - 3; j++){
+            for (int k = 0; k < BLK_SIZE_Z; k++){
                 chunk->set(i, j, k, Engine::BlockType::STONE);
                 chunk1->set(i, j, k, Engine::BlockType::DIRT);
             }

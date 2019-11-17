@@ -3,14 +3,15 @@
 #define CRAFTBONE_CHUNK_H
 
 #include <cstdint>
+#include <GL/gl.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 
-#define SIZE_X 16
-#define SIZE_Y 128
-#define SIZE_Z 16
+#define BLK_SIZE_X 16
+#define BLK_SIZE_Y 128
+#define BLK_SIZE_Z 16
 
 namespace Engine {
 
@@ -43,7 +44,7 @@ private:
 
     void updateVbo();
 
-    BlockType blocks[SIZE_X][SIZE_Y][SIZE_Z];
+    BlockType blocks[BLK_SIZE_X][BLK_SIZE_Y][BLK_SIZE_Z];
     GLuint vbo;
     GLuint vao;
     GLuint texture;

@@ -5,6 +5,7 @@
 #ifndef CRAFTBONE_WORLD_H
 #define CRAFTBONE_WORLD_H
 
+#include <memory>
 #include "Chunk.h"
 
 #define WORLD_SIZE_X 256
@@ -14,11 +15,11 @@
 namespace Engine {
     class World {
 
-        World();
+        explicit World(glm::vec3 origin);
         ~World() = default;
 
     private:
-        Chunk* chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z];
+        std::unique_ptr<Chunk> chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z];
 
     };
 }
