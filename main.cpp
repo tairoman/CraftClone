@@ -18,14 +18,17 @@
 #include "Engine/Camera.h"
 
 
-const int SCREEN_WIDTH = 1920;
-const int SCREEN_HEIGHT = 1080;
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+
+#define NUM_BLOCK_TYPES 4
 
 struct Config {
     bool wireframe = false;
 };
 
 void renderConfig(SDL_Window* window, Config& config){
+
     ImGui_ImplSdlGL3_NewFrame(window);
     ImGui::Text("Configuration");
     ImGui::Checkbox("Wireframe Mode", &config.wireframe);
@@ -33,8 +36,6 @@ void renderConfig(SDL_Window* window, Config& config){
     ImGui::Render();
 
 }
-
-#define NUM_BLOCK_TYPES 4
 
 float texLookup[NUM_BLOCK_TYPES*12] = {
 
@@ -87,7 +88,7 @@ int main() {
     GLuint texture;
     int textureAtlasWidth, textureAtlasHeight, comp;
     stbi_set_flip_vertically_on_load(true);
-    auto tilesFile = "assets/tiles.png";
+    const auto tilesFile = "assets/tiles.png";
     unsigned char* image = stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
 
     if (image == nullptr) {
@@ -107,7 +108,7 @@ int main() {
     glGenerateMipmap(GL_TEXTURE_2D);
 
     bool running = true;
-    bool showConfig = false;
+    bool showingConfig = false;
 
     SDL_Event event{};
 
@@ -143,7 +144,7 @@ int main() {
 
     while (running) {
 
-        if (!showConfig) camera.update();
+        if (!showingConfig) camera.update();
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -162,8 +163,9 @@ int main() {
 
         glUseProgram( 0 );
 
-        if (showConfig)
+        if (showingConfig){
             renderConfig(window, config);
+        }
 
         SDL_GL_SwapWindow(window);
 
@@ -193,19 +195,20 @@ int main() {
                         backgroundColor[2] = 0.8f;
                         break;
                     case SDLK_q:
-                        showConfig = !showConfig;
+                        showingConfig = !showingConfig;
+                        SDL_SetRelativeMouseMode(showingConfig ? SDL_FALSE : SDL_TRUE);
                         break;
                     default:
                         break;
                 }
-            } else if (event.type == SDL_MOUSEMOTION) {
+            } else if (event.type == SDL_MOUSEMOTION && !showingConfig) {
                 camera.rotate(event.motion.xrel, event.motion.yrel);
             }
         }
 
         const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
 
-        if (!showConfig) {
+        if (!showingConfig) {
             if (keyState[SDL_SCANCODE_W]) {
                 camera.moveForward();
             }
