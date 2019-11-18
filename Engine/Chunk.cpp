@@ -36,9 +36,9 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture) {
     glVertexAttribPointer(0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    for(int x = 0; x < BLK_SIZE_X; x++) {
-        for (int y = 0; y < BLK_SIZE_Y; y++) {
-            for (int z = 0; z < BLK_SIZE_Z; z++) {
+    for(auto x = 0; x < BLK_SIZE_X; x++) {
+        for (auto y = 0; y < BLK_SIZE_Y; y++) {
+            for (auto z = 0; z < BLK_SIZE_Z; z++) {
                 this->set(x,y,z, BlockType::AIR);
             }
         }

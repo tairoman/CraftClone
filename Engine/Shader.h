@@ -19,7 +19,7 @@ public:
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
     /* Activate the shader */
-    void use();
+    void use() const;
 
     /* Set uniforms */
     void setUniform(const std::string &name, bool value) const;

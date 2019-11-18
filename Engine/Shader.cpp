@@ -63,7 +63,7 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
     glLinkProgram(this->id);
 }
 
-void Shader::use() {
+void Shader::use() const {
     glUseProgram( this->id );
 }
 
