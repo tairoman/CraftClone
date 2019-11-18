@@ -6,34 +6,47 @@
 
 namespace Engine {
 
-
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
 
+    this->id = glCreateProgram();
 
-    GLuint vertexShader   = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    loadShader(vertexPath, Type::VERTEX);
+    loadShader(fragmentPath, Type::FRAGMENT);
 
-    std::ifstream vs_file(vertexPath);
-    std::string vs_src((std::istreambuf_iterator<char>(vs_file)), std::istreambuf_iterator<char>());
+    glLinkProgram(this->id);
+}
 
-    std::ifstream fs_file(fragmentPath);
-    std::string fs_src((std::istreambuf_iterator<char>(fs_file)), std::istreambuf_iterator<char>());
+void Shader::loadShader(const std::string& path, Type shaderType) {
 
-    const char *vs = vs_src.c_str();
-    const char *fs = fs_src.c_str();
+    GLuint shader = glCreateShader(shaderType == Type::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
 
-    glShaderSource(vertexShader, 1, &vs, nullptr);
-    glShaderSource(fragmentShader, 1, &fs, nullptr);
+    std::ifstream shader_file(path);
 
-    glCompileShader(vertexShader);
+    if (shader_file.fail()) {
+        std::cerr << "Something went wrong when a shader was loaded: " << path << "\n";
+        exit(0);
+    }
+
+    std::string shader_src((std::istreambuf_iterator<char>(shader_file)), std::istreambuf_iterator<char>());
+
+    const char* shaderStr = shader_src.c_str();
+
+    glShaderSource(shader, 1, &shaderStr, nullptr);
+
+    glCompileShader(shader);
+    
     int ok;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+    
     if(!ok) {
+        
+        // Get the error message
+
 	    GLint maxLength = 0;
-	    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+	    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
         std::vector<GLchar> errorLog(maxLength);
-	    glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &errorLog[0]);
+	    glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
 
         std::cerr << "Failed to compile vertex shader:\n\t";
         for (auto ch : errorLog) {
@@ -44,23 +57,10 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
         exit(0);
     }
 
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
-    if(!ok) {
-        fprintf(stderr, "%s\n", "Failed to compile fragment shader");
-        exit(0);
-    }
+    glAttachShader(this->id, shader);
 
+    glDeleteShader(shader);
 
-    this->id = glCreateProgram();
-
-    glAttachShader(this->id, fragmentShader);
-    glAttachShader(this->id, vertexShader);
-
-    glDeleteShader( vertexShader );
-    glDeleteShader( fragmentShader );
-
-    glLinkProgram(this->id);
 }
 
 void Shader::use() const {

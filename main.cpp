@@ -89,7 +89,7 @@ int main() {
     int textureAtlasWidth, textureAtlasHeight, comp;
     stbi_set_flip_vertically_on_load(true);
     const auto tilesFile = "assets/tiles.png";
-    unsigned char* image = stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
+    auto* image = stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
 
     if (image == nullptr) {
         std::cerr << tilesFile << " could not be loaded.\n";

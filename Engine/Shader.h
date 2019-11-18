@@ -15,6 +15,10 @@ class Shader {
 
 public:
 
+    enum class Type {
+        VERTEX, FRAGMENT
+    };
+
     /* Constructors */
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
@@ -29,6 +33,8 @@ public:
     void setUniform(const std::string &name, float* value, std::size_t length, std::size_t stride = 2) const;
 
 private:
+
+    void loadShader(const std::string& path, Type shaderType);
 
     GLuint id; // Shader program id
 
