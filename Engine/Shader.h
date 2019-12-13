@@ -2,7 +2,9 @@
 #ifndef CRAFTBONE_SHADER_H
 #define CRAFTBONE_SHADER_H
 
-#include <iostream>
+#include <string>
+#include <array>
+
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
@@ -30,7 +32,11 @@ public:
     void setUniform(const std::string &name, int value) const;
     void setUniform(const std::string &name, float value) const;
     void setUniform(const std::string &name, glm::mat4 value) const;
-    void setUniform(const std::string &name, float* value, std::size_t length, std::size_t stride = 2) const;
+
+    template <std::size_t arraySize>
+    void setUniform(const std::string &name, const std::array<float,arraySize>& value, std::size_t stride = 2) const {
+        glUniform2fv(glGetUniformLocation(this->id, name.c_str()), value.size() / stride, &value[0]);
+    }
 
 private:
 

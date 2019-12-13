@@ -1,0 +1,15 @@
+Checks: |
+    boost-*,
+    bugprone-*,
+    cert-*,
+    cppcoreguidelines-*,
+    -clang-analyzer-*,
+    misc-*,
+    modernize-*,
+    performance-*,
+    portability-*,
+    readability-*,
+    -readability-magic-numbers,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -readability-uppercase-literal-suffix,
+    -modernize-use-trailing-return-type

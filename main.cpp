@@ -1,10 +1,12 @@
 #include <iostream>
+#include <fstream>
+#include <memory>
+#include <array>
 
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
-#include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "lib/stb_image.h"
@@ -17,11 +19,17 @@
 #include "Engine/Chunk.h"
 #include "Engine/Camera.h"
 
+namespace ScreenData {
+    constexpr auto width = 1920;
+    constexpr auto height = 1080;
+}
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
-
-#define NUM_BLOCK_TYPES 4
+namespace BlockData {
+    // How many block types there are
+    constexpr auto numTypes = 4;
+    // How many vertices per block side
+    constexpr auto numVertices = 6;
+}
 
 struct Config {
     bool wireframe = false;
@@ -37,7 +45,8 @@ void renderConfig(SDL_Window* window, Config& config){
 
 }
 
-float texLookup[NUM_BLOCK_TYPES*12] = {
+constexpr auto texArraySize = BlockData::numTypes * BlockData::numVertices * 2;
+std::array<float, texArraySize> texLookup{
 
         /* 0. GRASS SIDE */
         0.635f, 0.9375f,
@@ -78,29 +87,31 @@ float texLookup[NUM_BLOCK_TYPES*12] = {
 
 int main() {
 
-    Engine::WindowManager windowManager("Test", SCREEN_WIDTH, SCREEN_HEIGHT);
+    Engine::WindowManager windowManager("Test", ScreenData::width, ScreenData::height);
     SDL_Window* window = windowManager.getWindow();
 
     ImGui_ImplSdlGL3_Init(window);
 
     Config config{};
 
-    GLuint texture;
-    int textureAtlasWidth, textureAtlasHeight, comp;
-    stbi_set_flip_vertically_on_load(true);
-    const auto tilesFile = "assets/tiles.png";
-    auto* image = stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha);
+    int textureAtlasWidth = -1;
+    int textureAtlasHeight = -1;
 
-    if (image == nullptr) {
+    stbi_set_flip_vertically_on_load(static_cast<int>(true));
+    const auto tilesFile = "assets/tiles.png";
+    int comp = -1;
+    std::unique_ptr<stbi_uc> image{ stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha) };
+
+    if (image == nullptr || textureAtlasWidth < 0 || textureAtlasHeight < 0) {
         std::cerr << tilesFile << " could not be loaded.\n";
         exit(0);
-    } 
+    }
 
+    GLuint texture;
     glGenTextures(1, &texture);
 
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureAtlasWidth, textureAtlasHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    free(image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureAtlasWidth, textureAtlasHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.get());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -112,19 +123,20 @@ int main() {
 
     SDL_Event event{};
 
-    int w, h;
+    int w = 0; 
+    int h = 0;
     SDL_GetWindowSize(window, &w, &h);
     glViewport(0, 0, w, h); // Set viewport
 
     const Engine::Shader simpleShader("shaders/shader.vert", "shaders/shader.frag");
 
-    float backgroundColor[] = {0.2f, 0.2f, 0.8f};
+    std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
-    Engine::Chunk* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
-    Engine::Chunk* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
+    auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
+    auto* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
     for (auto i = 0; i < BLK_SIZE_X; i++) {
         for (auto k = 0; k < BLK_SIZE_Z; k++){
             chunk->set(i, BLK_SIZE_Y - 1, k, Engine::BlockType::GRASS);
@@ -144,7 +156,9 @@ int main() {
 
     while (running) {
 
-        if (!showingConfig) camera.update();
+        if (!showingConfig) {
+            camera.update();
+        }
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -154,11 +168,11 @@ int main() {
         simpleShader.use();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, NUM_BLOCK_TYPES*12);
+        simpleShader.setUniform("texLookup", texLookup);
         chunk->render();
 
         simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
-        simpleShader.setUniform("texLookup", texLookup, NUM_BLOCK_TYPES*12);
+        simpleShader.setUniform("texLookup", texLookup);
         chunk1->render();
 
         glUseProgram( 0 );
@@ -169,7 +183,7 @@ int main() {
 
         SDL_GL_SwapWindow(window);
 
-        while (SDL_PollEvent(&event)) {
+        while (static_cast<bool>(SDL_PollEvent(&event))) {
 
             ImGui_ImplSdlGL3_ProcessEvent(&event);
 

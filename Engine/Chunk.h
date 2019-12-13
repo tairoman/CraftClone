@@ -2,7 +2,6 @@
 #ifndef CRAFTBONE_CHUNK_H
 #define CRAFTBONE_CHUNK_H
 
-#include <cstdint>
 #include <GL/gl.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/gtc/type_precision.hpp>

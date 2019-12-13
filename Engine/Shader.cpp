@@ -1,8 +1,10 @@
 
+#include <iostream>
 #include <fstream>
-#include "Shader.h"
-
 #include <vector>
+#include <array>
+
+#include "Shader.h"
 
 namespace Engine {
 
@@ -38,7 +40,7 @@ void Shader::loadShader(const std::string& path, Type shaderType) {
     int ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
     
-    if(!ok) {
+    if(!static_cast<bool>(ok)) {
         
         // Get the error message
 
@@ -81,10 +83,6 @@ void Shader::setUniform(const std::string &name, float value) const {
 
 void Shader::setUniform(const std::string &name, glm::mat4 value) const {
     glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0].x);
-}
-
-void Shader::setUniform(const std::string &name, float* value, std::size_t length, std::size_t stride) const {
-    glUniform2fv(glGetUniformLocation(this->id, name.c_str()), length / stride, value);
 }
 
 }

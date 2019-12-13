@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.8)
 project(CraftBone)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CXX_FLAGS "-Wall -lSDL2 -lGL -lGLEW")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -lSDL2 -lGL -lGLEW")
 
 file(GLOB imgui
         "lib/imgui/*.h"

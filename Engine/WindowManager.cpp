@@ -1,4 +1,4 @@
-
+#include <iostream>
 
 #include "WindowManager.h"
 
@@ -8,26 +8,16 @@
 
 namespace Engine {
 
-WindowManager::WindowManager(const std::string& title) {
-    this->width = 640; this->height = 480;
-    this->initialize(title);
+WindowManager::WindowManager(const std::string& title)
+    : WindowManager(title, 640, 480)
+{}
 
-    //this->setSize(640, 480);
-
-}
-
-WindowManager::WindowManager(const std::string& title, int w, int h) {
-    this->width = w; this->height = h;
-    this->initialize(title);
-
-    //this->setSize(w, h);
-
-}
-
-void WindowManager::initialize(const std::string& title){
-
+WindowManager::WindowManager(const std::string& title, int w, int h)
+    : width(w)
+    , height(h)
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "%s: %s\n", "Couldn't initialize SDL", SDL_GetError());
+        std::cerr << "Couldn't initialize SDL: " << SDL_GetError() << ".\n";
         exit(0);
     }
 
@@ -49,7 +39,7 @@ void WindowManager::initialize(const std::string& title){
                                     SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     if (this->window == nullptr) {
-        fprintf(stderr, "%s: %s\n", "Couldn't set video mode", SDL_GetError());
+        std::cerr << "Couldn't set video mode: " << SDL_GetError() << ".\n";
         exit(0);
     }
 
@@ -59,19 +49,21 @@ void WindowManager::initialize(const std::string& title){
     // Create OpenGL context
     this->context = SDL_GL_CreateContext(this->window);
     if (this->context == nullptr) {
-        fprintf(stderr, "%s: %s\n", "Failed to create OpenGL context", SDL_GetError());
+        std::cerr << "Failed to create OpenGL context: " << SDL_GetError() << ".\n";
         exit(0);
     }
 
     SDL_GL_MakeCurrent(this->window, this->context);
 
     if (glewInit() != GLEW_OK){
-        fprintf(stderr, "%s\n", "Failed to initialize GLEW");
+        std::cerr << "Failed to initialize GLEW.\n";
         exit(0);
     }
 
     // V-SYNC
     SDL_GL_SetSwapInterval(1);
+
+    //this->setSize(w, h);
 
 }
 

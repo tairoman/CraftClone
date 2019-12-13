@@ -2,9 +2,9 @@
 #ifndef CRAFTBONE_WINDOWMANAGER_H
 #define CRAFTBONE_WINDOWMANAGER_H
 
-#include <SDL2/SDL.h>
-
 #include <string>
+
+#include <SDL2/SDL.h>
 
 namespace Engine {
 
@@ -28,8 +28,6 @@ public:
     SDL_Window* getWindow() const;
 
 private:
-
-    void initialize(const std::string& title);
 
     SDL_Window* window;
 
