@@ -137,17 +137,17 @@ int main() {
 
     auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
     auto* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
-    for (auto i = 0; i < BLK_SIZE_X; i++) {
-        for (auto k = 0; k < BLK_SIZE_Z; k++){
-            chunk->set(i, BLK_SIZE_Y - 1, k, Engine::BlockType::GRASS);
-            chunk->set(i, BLK_SIZE_Y - 2, k, Engine::BlockType::DIRT);
-            chunk->set(i, BLK_SIZE_Y - 3, k, Engine::BlockType::DIRT);
+    for (auto i = 0; i < BlockData::Size::X; i++) {
+        for (auto k = 0; k < BlockData::Size::Z; k++){
+            chunk->set(i, BlockData::Size::Y - 1, k, Engine::BlockType::GRASS);
+            chunk->set(i, BlockData::Size::Y - 2, k, Engine::BlockType::DIRT);
+            chunk->set(i, BlockData::Size::Y - 3, k, Engine::BlockType::DIRT);
         }
     }
 
-    for (auto i = 0; i < BLK_SIZE_X; i++){
-        for (auto j = 0; j < BLK_SIZE_Y - 3; j++){
-            for (auto k = 0; k < BLK_SIZE_Z; k++){
+    for (auto i = 0; i < BlockData::Size::X; i++){
+        for (auto j = 0; j < BlockData::Size::Y - 3; j++){
+            for (auto k = 0; k < BlockData::Size::Z; k++){
                 chunk->set(i, j, k, Engine::BlockType::STONE);
                 chunk1->set(i, j, k, Engine::BlockType::DIRT);
             }
@@ -167,11 +167,11 @@ int main() {
 
         simpleShader.use();
 
-        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->modelWorldMatrix);
+        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->getModelWorldMatrix());
         simpleShader.setUniform("texLookup", texLookup);
         chunk->render();
 
-        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->modelWorldMatrix);
+        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->getModelWorldMatrix());
         simpleShader.setUniform("texLookup", texLookup);
         chunk1->render();
 

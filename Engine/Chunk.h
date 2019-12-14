@@ -2,15 +2,18 @@
 #ifndef CRAFTBONE_CHUNK_H
 #define CRAFTBONE_CHUNK_H
 
+#include <array>
+
 #include <GL/gl.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
-#define BLK_SIZE_X 16
-#define BLK_SIZE_Y 128
-#define BLK_SIZE_Z 16
+namespace BlockData::Size {
+    constexpr auto X = 16;
+    constexpr auto Y = 128;
+    constexpr auto Z = 16;
+}
 
 namespace Engine {
 
@@ -27,15 +30,26 @@ enum class BlockSide {
 
 class Chunk {
 
+    template <typename T>
+    using ArrX = std::array<T, BlockData::Size::X>;
+    template <typename T>
+    using ArrY = std::array<T, BlockData::Size::Y>;
+    template <typename T>
+    using ArrZ = std::array<T, BlockData::Size::Z>;
+    
+    using BlockArray = ArrX<ArrY<ArrZ<BlockType>>>;
+
 public:
 
     Chunk(glm::vec3 pos, GLuint texture);
     ~Chunk();
 
-    BlockType get(int x, int y, int z);
+    BlockType get(int x, int y, int z) const;
     void set(int x, int y, int z, BlockType type);
 
-    glm::mat4 modelWorldMatrix = glm::mat4(1.0f);
+    const glm::mat4& getModelWorldMatrix() const {
+        return modelWorldMatrix;
+    }
 
     void render();
 
@@ -43,12 +57,13 @@ private:
 
     void updateVbo();
 
-    BlockType blocks[BLK_SIZE_X][BLK_SIZE_Y][BLK_SIZE_Z];
+    glm::mat4 modelWorldMatrix{1.0f};
+    BlockArray blocks{};
     GLuint vbo;
     GLuint vao;
     GLuint texture;
-    bool changed;
-    unsigned int vertices;
+    bool changed = true;
+    unsigned int vertices = 0;
 
 };
 

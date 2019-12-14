@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <span>
 
 #include <GL/glew.h>
 
@@ -26,7 +27,6 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture) {
 
     this->modelWorldMatrix = glm::translate(this->modelWorldMatrix, pos);
 
-    this->changed = true;
     glGenBuffers(1, &this->vbo);
     glGenVertexArrays(1, &this->vao);
 
@@ -37,10 +37,10 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture) {
     glVertexAttribPointer(0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    for(auto x = 0; x < BLK_SIZE_X; x++) {
-        for (auto y = 0; y < BLK_SIZE_Y; y++) {
-            for (auto z = 0; z < BLK_SIZE_Z; z++) {
-                this->set(x,y,z, BlockType::AIR);
+    for(auto x = 0; x < BlockData::Size::X; ++x) {
+        for (auto y = 0; y < BlockData::Size::Y; ++y) {
+            for (auto z = 0; z < BlockData::Size::Z; ++z) {
+                this->set(x, y, z, BlockType::AIR);
             }
         }
     }
@@ -54,7 +54,7 @@ Chunk::~Chunk() {
     glDeleteVertexArrays(1, &this->vao);
 }
 
-BlockType Chunk::get(int x, int y, int z) {
+BlockType Chunk::get(int x, int y, int z) const {
     return this->blocks[x][y][z];
 }
 
@@ -64,8 +64,9 @@ void Chunk::set(int x, int y, int z, BlockType type) {
 }
 
 void Chunk::render() {
-    if (this->changed)
+    if (this->changed){
         this->updateVbo();
+    }
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->texture);
@@ -76,24 +77,24 @@ void Chunk::render() {
 }
 
 void Chunk::updateVbo() {
-
+    std::span sp{};
     this->changed = false;
-    vertex_data vertices[BLK_SIZE_X * BLK_SIZE_Y * BLK_SIZE_Z * 6 * 6];
+    std::array<vertex_data, BlockData::Size::X * BlockData::Size::Y * BlockData::Size::Z * 6 * 6> vertices{};
     unsigned int i = 0;
 
-    for(int x = 0; x < BLK_SIZE_X; x++) {
-        for (int y = 0; y < BLK_SIZE_Y; y++) {
-            for (int z = 0; z < BLK_SIZE_Z; z++) {
+    for(auto x = 0; x < BlockData::Size::X; ++x) {
+        for (auto y = 0; y < BlockData::Size::Y; ++y) {
+            for (auto z = 0; z < BlockData::Size::Z; ++z) {
 
-                BlockType typ = this->get(x,y,z);
+                const BlockType typ = this->get(x,y,z);
 
                 if (typ == BlockType::AIR){
                     continue;
                 }
 
-                std::size_t offset_side = atlasLookup(this->get(x,y,z), BlockSide::SIDE);
-                std::size_t offset_top = atlasLookup(this->get(x,y,z), BlockSide::TOP);
-                std::size_t offset_bottom = atlasLookup(this->get(x,y,z), BlockSide::BOTTOM);
+                const auto offset_side = atlasLookup(this->get(x,y,z), BlockSide::SIDE);
+                const auto offset_top = atlasLookup(this->get(x,y,z), BlockSide::TOP);
+                const auto offset_bottom = atlasLookup(this->get(x,y,z), BlockSide::BOTTOM);
 
                 // - X
                 if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
@@ -106,7 +107,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + X
-                if (x == BLK_SIZE_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
+                if (x == BlockData::Size::X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 0);
                     vertices[i++] = vertex_data(x + 1, y, z, offset_side + 1);
                     vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 2);
@@ -126,7 +127,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + Y
-                if (y == BLK_SIZE_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
+                if (y == BlockData::Size::Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x, y + 1, z, offset_top + 0);
                     vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 1);
                     vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 2);
@@ -146,7 +147,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + Z
-                if (z == BLK_SIZE_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
+                if (z == BlockData::Size::Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x, y, z + 1, offset_side + 0);
                     vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 1);
                     vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 2);
@@ -161,7 +162,7 @@ void Chunk::updateVbo() {
     this->vertices = i;
 
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-    glBufferData(GL_ARRAY_BUFFER, i * sizeof(vertex_data), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, i * sizeof(vertex_data), &vertices[0], GL_STATIC_DRAW);
 
 }
 
