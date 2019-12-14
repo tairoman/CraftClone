@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <span>
 
 #include <GL/glew.h>
 
@@ -77,7 +76,7 @@ void Chunk::render() {
 }
 
 void Chunk::updateVbo() {
-    std::span sp{};
+
     this->changed = false;
     std::array<vertex_data, BlockData::Size::X * BlockData::Size::Y * BlockData::Size::Z * 6 * 6> vertices{};
     unsigned int i = 0;
