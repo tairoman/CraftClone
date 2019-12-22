@@ -36,9 +36,9 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture) {
     glVertexAttribPointer(0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    for(auto x = 0; x < BlockData::Size::X; ++x) {
-        for (auto y = 0; y < BlockData::Size::Y; ++y) {
-            for (auto z = 0; z < BlockData::Size::Z; ++z) {
+    for(auto x = 0; x < ChunkData::BLOCKS_X; ++x) {
+        for (auto y = 0; y < ChunkData::BLOCKS_Y; ++y) {
+            for (auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
                 this->set(x, y, z, BlockType::AIR);
             }
         }
@@ -78,12 +78,12 @@ void Chunk::render() {
 void Chunk::updateVbo() {
 
     this->changed = false;
-    std::array<vertex_data, BlockData::Size::X * BlockData::Size::Y * BlockData::Size::Z * 6 * 6> vertices{};
+    std::array<vertex_data, ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y * ChunkData::BLOCKS_Z * 6 * 6> vertices{};
     unsigned int i = 0;
 
-    for(auto x = 0; x < BlockData::Size::X; ++x) {
-        for (auto y = 0; y < BlockData::Size::Y; ++y) {
-            for (auto z = 0; z < BlockData::Size::Z; ++z) {
+    for(auto x = 0; x < ChunkData::BLOCKS_X; ++x) {
+        for (auto y = 0; y < ChunkData::BLOCKS_Y; ++y) {
+            for (auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
 
                 const BlockType typ = this->get(x,y,z);
 
@@ -106,7 +106,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + X
-                if (x == BlockData::Size::X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
+                if (x == ChunkData::BLOCKS_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 0);
                     vertices[i++] = vertex_data(x + 1, y, z, offset_side + 1);
                     vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 2);
@@ -126,7 +126,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + Y
-                if (y == BlockData::Size::Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
+                if (y == ChunkData::BLOCKS_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x, y + 1, z, offset_top + 0);
                     vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 1);
                     vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 2);
@@ -146,7 +146,7 @@ void Chunk::updateVbo() {
                 }
 
                 // + Z
-                if (z == BlockData::Size::Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
+                if (z == ChunkData::BLOCKS_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
                     vertices[i++] = vertex_data(x, y, z + 1, offset_side + 0);
                     vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 1);
                     vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 2);

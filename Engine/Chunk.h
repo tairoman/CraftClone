@@ -9,10 +9,10 @@
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace BlockData::Size {
-    constexpr auto X = 16;
-    constexpr auto Y = 128;
-    constexpr auto Z = 16;
+namespace ChunkData {
+    constexpr auto BLOCKS_X = 16;
+    constexpr auto BLOCKS_Y = 128;
+    constexpr auto BLOCKS_Z = 16;
 }
 
 namespace Engine {
@@ -31,11 +31,11 @@ enum class BlockSide {
 class Chunk {
 
     template <typename T>
-    using ArrX = std::array<T, BlockData::Size::X>;
+    using ArrX = std::array<T, ChunkData::BLOCKS_X>;
     template <typename T>
-    using ArrY = std::array<T, BlockData::Size::Y>;
+    using ArrY = std::array<T, ChunkData::BLOCKS_Y>;
     template <typename T>
-    using ArrZ = std::array<T, BlockData::Size::Z>;
+    using ArrZ = std::array<T, ChunkData::BLOCKS_Z>;
     
     using BlockArray = ArrX<ArrY<ArrZ<BlockType>>>;
 
