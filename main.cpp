@@ -108,8 +108,6 @@ int main() {
 
     Config config{};
 
-    double avgDeltaTime = 1;
-
     int textureAtlasWidth = -1;
     int textureAtlasHeight = -1;
 
@@ -170,9 +168,25 @@ int main() {
         }
     }
 
+    auto now = SDL_GetTicks();
+    double deltaTime = 0;
+    double avgDeltaTime = 1;
+
+
     while (running) {
 
-        const auto startTime = SDL_GetTicks();
+        const auto last = now;
+        now = SDL_GetTicks();
+
+        deltaTime = now - last;
+
+        // Moving average of time spent in game loop
+        const auto decayFactor = 0.95;
+        avgDeltaTime = decayFactor * avgDeltaTime + (1.0 - decayFactor) * deltaTime;
+		
+        // Display calculated FPS of the moving average
+        const auto currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
+        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(currentFPS)).c_str());
 
         if (!showingConfig) {
             camera.update();
@@ -242,16 +256,16 @@ int main() {
 
         if (!showingConfig) {
             if (keyState[SDL_SCANCODE_W]) {
-                camera.moveForward();
+                camera.moveForward(deltaTime / 100);
             }
             if (keyState[SDL_SCANCODE_S]) {
-                camera.moveBack();
+                camera.moveBack(deltaTime / 100);
             }
             if (keyState[SDL_SCANCODE_A]) {
-                camera.moveLeft();
+                camera.moveLeft(deltaTime / 100);
             }
             if (keyState[SDL_SCANCODE_D]) {
-                camera.moveRight();
+                camera.moveRight(deltaTime / 100);
             }
             if (keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(10);
@@ -260,17 +274,6 @@ int main() {
                 camera.setSpeedMultiplier(1);
             }
         }
-
-        // Time spend in current iteration of the game loop
-        const auto deltaTime = SDL_GetTicks() - startTime;
-
-        // Moving average of time spent in game loop
-        const auto decayFactor = 0.95;
-        avgDeltaTime = decayFactor * avgDeltaTime + (1.0 - decayFactor) * deltaTime;
-		
-        // Display calculated FPS of the moving average
-        const auto currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
-        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(currentFPS)).c_str());
 
     }
 
