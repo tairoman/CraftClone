@@ -38,8 +38,9 @@ struct Config {
 void renderConfig(SDL_Window* window, Config& config){
 
     ImGui_ImplSdlGL3_NewFrame(window);
-    ImGui::Text("Configuration");
+    ImGui::Begin("Configuration");
     ImGui::Checkbox("Wireframe Mode", &config.wireframe);
+    ImGui::End();
 
     ImGui::Render();
 
@@ -93,6 +94,9 @@ int main() {
     ImGui_ImplSdlGL3_Init(window);
 
     Config config{};
+
+
+    double avgDeltaTime = 1;
 
     int textureAtlasWidth = -1;
     int textureAtlasHeight = -1;
@@ -156,6 +160,8 @@ int main() {
 
     while (running) {
 
+        const auto startTime = SDL_GetTicks();
+
         if (!showingConfig) {
             camera.update();
         }
@@ -183,7 +189,7 @@ int main() {
 
         SDL_GL_SwapWindow(window);
 
-        while (static_cast<bool>(SDL_PollEvent(&event))) {
+        while (SDL_PollEvent(&event) == 1) {
 
             ImGui_ImplSdlGL3_ProcessEvent(&event);
 
@@ -248,6 +254,18 @@ int main() {
         } else {
             glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
         }
+
+        // Time spend in current iteration of the game loop
+        const auto deltaTime = SDL_GetTicks() - startTime;
+
+        // Moving average of time spent in game loop
+        const auto decayFactor = 0.95;
+        avgDeltaTime = decayFactor * avgDeltaTime + (1.0 - decayFactor) * deltaTime;
+		
+        // Display calculated FPS of the moving average
+        const auto currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
+        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(currentFPS)).c_str());
+
     }
 
     SDL_Quit();
