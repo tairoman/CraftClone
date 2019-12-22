@@ -60,8 +60,7 @@ WindowManager::WindowManager(const std::string& title, int w, int h)
         exit(0);
     }
 
-    // V-SYNC
-    SDL_GL_SetSwapInterval(1);
+    setVSync(true);
 
     //this->setSize(w, h);
 
@@ -83,6 +82,10 @@ void WindowManager::setFullscreen() {
 
 SDL_Window* WindowManager::getWindow() const {
     return this->window;
+}
+
+void WindowManager::setVSync(bool setEnabled) {
+    SDL_GL_SetSwapInterval(static_cast<int>(setEnabled));
 }
 
 

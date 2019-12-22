@@ -33,13 +33,26 @@ namespace BlockData {
 
 struct Config {
     bool wireframe = false;
+    bool vsync = true;
 };
 
-void renderConfig(SDL_Window* window, Config& config){
+void renderConfig(Engine::WindowManager* manager, Config& config){
 
-    ImGui_ImplSdlGL3_NewFrame(window);
+    ImGui_ImplSdlGL3_NewFrame(manager->getWindow());
     ImGui::Begin("Configuration");
-    ImGui::Checkbox("Wireframe Mode", &config.wireframe);
+    
+    if (ImGui::Checkbox("Wireframe Mode", &config.wireframe)) {
+        if (config.wireframe){
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        } else {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        }
+    }
+
+    if (ImGui::Checkbox("VSync", &config.vsync)) {
+        manager->setVSync(config.vsync);
+    }
+
     ImGui::End();
 
     ImGui::Render();
@@ -94,7 +107,6 @@ int main() {
     ImGui_ImplSdlGL3_Init(window);
 
     Config config{};
-
 
     double avgDeltaTime = 1;
 
@@ -184,7 +196,7 @@ int main() {
         glUseProgram( 0 );
 
         if (showingConfig){
-            renderConfig(window, config);
+            renderConfig(&windowManager, config);
         }
 
         SDL_GL_SwapWindow(window);
@@ -247,12 +259,6 @@ int main() {
             if (!keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(1);
             }
-        }
-
-        if (config.wireframe){
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        } else {
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
         }
 
         // Time spend in current iteration of the game loop

@@ -23,6 +23,7 @@ public:
     /* Set window properties */
     void setSize(int w, int h);
     void setFullscreen();
+    void setVSync(bool setEnabled);
 
     /* Getters */
     SDL_Window* getWindow() const;
