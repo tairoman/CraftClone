@@ -13,6 +13,7 @@ namespace ChunkData {
     constexpr auto BLOCKS_X = 16;
     constexpr auto BLOCKS_Y = 128;
     constexpr auto BLOCKS_Z = 16;
+    constexpr auto BLOCKS = BLOCKS_X * BLOCKS_Y * BLOCKS_Z;
 }
 
 namespace Engine {
@@ -29,16 +30,6 @@ enum class BlockSide {
 };
 
 class Chunk {
-
-    template <typename T>
-    using ArrX = std::array<T, ChunkData::BLOCKS_X>;
-    template <typename T>
-    using ArrY = std::array<T, ChunkData::BLOCKS_Y>;
-    template <typename T>
-    using ArrZ = std::array<T, ChunkData::BLOCKS_Z>;
-    
-    using BlockArray = ArrX<ArrY<ArrZ<BlockType>>>;
-
 public:
 
     Chunk(glm::vec3 pos, GLuint texture);
@@ -58,7 +49,7 @@ private:
     void updateVbo();
 
     glm::mat4 modelWorldMatrix{1.0f};
-    BlockArray blocks{};
+    std::array<BlockType, ChunkData::BLOCKS> blocks;
     GLuint vbo;
     GLuint vao;
     GLuint texture;

@@ -60,7 +60,7 @@ WindowManager::WindowManager(const std::string& title, int w, int h)
         exit(0);
     }
 
-    setVSync(true);
+    setVSync(false);
 
     //this->setSize(w, h);
 

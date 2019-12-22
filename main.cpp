@@ -33,7 +33,7 @@ namespace BlockData {
 
 struct Config {
     bool wireframe = false;
-    bool vsync = true;
+    bool vsync = false;
 };
 
 void renderConfig(Engine::WindowManager* manager, Config& config){

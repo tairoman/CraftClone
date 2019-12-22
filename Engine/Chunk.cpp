@@ -4,6 +4,10 @@
 
 #include "Chunk.h"
 
+constexpr auto X_BLK_OFFSET = 0;
+constexpr auto Y_BLK_OFFSET = ChunkData::BLOCKS_X;
+constexpr auto Z_BLK_OFFSET = ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y;
+
 namespace Engine {
 
 std::size_t atlasLookup(BlockType type, BlockSide side) {
@@ -36,12 +40,8 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture) {
     glVertexAttribPointer(0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    for(auto x = 0; x < ChunkData::BLOCKS_X; ++x) {
-        for (auto y = 0; y < ChunkData::BLOCKS_Y; ++y) {
-            for (auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
-                this->set(x, y, z, BlockType::AIR);
-            }
-        }
+    for (auto& blk : this->blocks) {
+        blk = BlockType::AIR;
     }
 
     this->texture = texture;
@@ -54,12 +54,12 @@ Chunk::~Chunk() {
 }
 
 BlockType Chunk::get(int x, int y, int z) const {
-    return this->blocks[x][y][z];
+    return this->blocks[X_BLK_OFFSET * x + Y_BLK_OFFSET * y + Z_BLK_OFFSET * z];
 }
 
 void Chunk::set(int x, int y, int z, BlockType type) {
     this->changed = true;
-    this->blocks[x][y][z] = type;
+    this->blocks[X_BLK_OFFSET * x + Y_BLK_OFFSET * y + Z_BLK_OFFSET * z] = type;
 }
 
 void Chunk::render() {
@@ -81,9 +81,9 @@ void Chunk::updateVbo() {
     std::array<vertex_data, ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y * ChunkData::BLOCKS_Z * 6 * 6> vertices{};
     unsigned int i = 0;
 
-    for(auto x = 0; x < ChunkData::BLOCKS_X; ++x) {
+    for(auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
         for (auto y = 0; y < ChunkData::BLOCKS_Y; ++y) {
-            for (auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
+            for (auto x = 0; x < ChunkData::BLOCKS_X; ++x) {
 
                 const BlockType typ = this->get(x,y,z);
 
@@ -91,9 +91,9 @@ void Chunk::updateVbo() {
                     continue;
                 }
 
-                const auto offset_side = atlasLookup(this->get(x,y,z), BlockSide::SIDE);
-                const auto offset_top = atlasLookup(this->get(x,y,z), BlockSide::TOP);
-                const auto offset_bottom = atlasLookup(this->get(x,y,z), BlockSide::BOTTOM);
+                const auto offset_side = atlasLookup(typ, BlockSide::SIDE);
+                const auto offset_top = atlasLookup(typ, BlockSide::TOP);
+                const auto offset_bottom = atlasLookup(typ, BlockSide::BOTTOM);
 
                 // - X
                 if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
