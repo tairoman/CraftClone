@@ -1,3 +1,6 @@
+# ImGui
+imgui.ini
+
 # Build
 cmake-build-debug/
 build/
