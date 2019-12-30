@@ -12,11 +12,13 @@ namespace SDL
     {
     public:
         
-        WindowPtr() = default;
+        WindowPtr()
+            :WindowPtr(nullptr)
+        {}
+
         WindowPtr(SDL_Window* ptr)
-        {
-            this->ptr.reset(ptr);
-        }
+            : ptr(ptr, SDL_DestroyWindow)
+        {}
 
         ~WindowPtr() = default;
 
@@ -37,7 +39,7 @@ namespace SDL
         }
 
     private:
-        std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> ptr{nullptr, SDL_DestroyWindow};
+        std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> ptr;
     };
 
 }
