@@ -11,6 +11,14 @@ namespace SDL
     class WindowPtr
     {
     public:
+        
+        WindowPtr() = default;
+        WindowPtr(SDL_Window* ptr)
+        {
+            this->ptr.reset(ptr);
+        }
+
+        ~WindowPtr() = default;
 
         decltype(auto) reset(SDL_Window* newPtr)
         {

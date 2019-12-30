@@ -15,16 +15,14 @@ namespace Engine {
     WindowManager::WindowManager(const std::string& title, int w, int h)
         : width(w)
         , height(h)
-    {
-        
-        this->window.reset(SDL_CreateWindow(
+        , window(SDL_CreateWindow(
             title.c_str(),
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width,
             height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
-        );
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE))
+    {
 
         if (this->window == nullptr) {
             std::cerr << "Couldn't set video mode: " << SDL_GetError() << ".\n";
