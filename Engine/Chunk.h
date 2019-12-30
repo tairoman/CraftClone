@@ -53,13 +53,13 @@ namespace Engine
 
         void updateVbo();
 
-        glm::mat4 modelWorldMatrix{1.0f};
+        glm::mat4 modelWorldMatrix;
         std::array<BlockType, ChunkData::BLOCKS> blocks;
         GLuint vbo;
         GLuint vao;
         GLuint texture;
         bool changed = true;
-        unsigned int vertices = 0;
+        std::size_t vertices = 0;
 
     };
 }

@@ -3,8 +3,11 @@
 #define CRAFTBONE_WINDOWMANAGER_H
 
 #include <string>
+#include <memory>
 
 #include <SDL2/SDL.h>
+
+#include "SDL/WindowPtr.h"
 
 namespace Engine
 {
@@ -19,7 +22,7 @@ class WindowManager
         WindowManager(const std::string& title, int w, int h);
 
         /* Destructor */
-        ~WindowManager();
+        ~WindowManager() = default;
 
         /* Set window properties */
         void setSize(int w, int h);
@@ -31,15 +34,14 @@ class WindowManager
 
     private:
 
-        SDL_Window* window;
-
-        SDL_GLContext context;
-
         int width = 0;
         int height = 0;
 
-        Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        SDL::WindowPtr window;
 
+        SDL_GLContext context;
+
+        Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     };
 }
 

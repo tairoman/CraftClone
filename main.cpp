@@ -33,6 +33,27 @@ namespace BlockData
     constexpr auto numVertices = 6;
 }
 
+namespace Engine
+{
+    void initialize()
+    {
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            std::cerr << "Couldn't initialize SDL: " << SDL_GetError() << ".\n";
+            exit(0);
+        }
+
+        SDL_GL_LoadLibrary(nullptr);
+
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    }
+}
+
 struct Config
 {
     bool wireframe = false;
@@ -105,6 +126,8 @@ std::array<float, texArraySize> texLookup{
 
 int main()
 {
+
+    Engine::initialize();
 
     Engine::WindowManager windowManager("Test", ScreenData::width, ScreenData::height);
     SDL_Window* window = windowManager.getWindow();
