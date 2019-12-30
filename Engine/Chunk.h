@@ -9,55 +9,59 @@
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace ChunkData {
+namespace ChunkData
+{
     constexpr auto BLOCKS_X = 16;
     constexpr auto BLOCKS_Y = 128;
     constexpr auto BLOCKS_Z = 16;
     constexpr auto BLOCKS = BLOCKS_X * BLOCKS_Y * BLOCKS_Z;
 }
 
-namespace Engine {
+namespace Engine
+{
 
-enum class BlockType : uint8_t {
-    AIR,
-    GRASS,
-    DIRT,
-    STONE,
-};
+    enum class BlockType : uint8_t
+    {
+        AIR,
+        GRASS,
+        DIRT,
+        STONE,
+    };
 
-enum class BlockSide {
-    TOP, BOTTOM, SIDE
-};
+    enum class BlockSide
+    {
+        TOP, BOTTOM, SIDE
+    };
 
-class Chunk {
-public:
+    class Chunk
+    {
+    public:
 
-    Chunk(glm::vec3 pos, GLuint texture);
-    ~Chunk();
+        Chunk(glm::vec3 pos, GLuint texture);
+        ~Chunk();
 
-    BlockType get(int x, int y, int z) const;
-    void set(int x, int y, int z, BlockType type);
+        BlockType get(int x, int y, int z) const;
+        void set(int x, int y, int z, BlockType type);
 
-    const glm::mat4& getModelWorldMatrix() const {
-        return modelWorldMatrix;
-    }
+        const glm::mat4& getModelWorldMatrix() const {
+            return modelWorldMatrix;
+        }
 
-    void render();
+        void render();
 
-private:
+    private:
 
-    void updateVbo();
+        void updateVbo();
 
-    glm::mat4 modelWorldMatrix{1.0f};
-    std::array<BlockType, ChunkData::BLOCKS> blocks;
-    GLuint vbo;
-    GLuint vao;
-    GLuint texture;
-    bool changed = true;
-    unsigned int vertices = 0;
+        glm::mat4 modelWorldMatrix{1.0f};
+        std::array<BlockType, ChunkData::BLOCKS> blocks;
+        GLuint vbo;
+        GLuint vao;
+        GLuint texture;
+        bool changed = true;
+        unsigned int vertices = 0;
 
-};
-
+    };
 }
 
 

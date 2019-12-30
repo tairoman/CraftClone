@@ -12,8 +12,10 @@
 #define WORLD_SIZE_Y 16
 #define WORLD_SIZE_Z 256
 
-namespace Engine {
-    class World {
+namespace Engine
+{
+    class World
+    {
 
         explicit World(glm::vec3 origin);
         ~World() = default;

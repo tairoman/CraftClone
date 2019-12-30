@@ -6,41 +6,41 @@
 
 #include <SDL2/SDL.h>
 
-namespace Engine {
+namespace Engine
+{
 
+class WindowManager
+    {
 
-class WindowManager {
+    public:
 
-public:
+        /* Constructors */
+        explicit WindowManager(const std::string& title);
+        WindowManager(const std::string& title, int w, int h);
 
-    /* Constructors */
-    explicit WindowManager(const std::string& title);
-    WindowManager(const std::string& title, int w, int h);
+        /* Destructor */
+        ~WindowManager();
 
-    /* Destructor */
-    ~WindowManager();
+        /* Set window properties */
+        void setSize(int w, int h);
+        void setFullscreen();
+        void setVSync(bool setEnabled);
 
-    /* Set window properties */
-    void setSize(int w, int h);
-    void setFullscreen();
-    void setVSync(bool setEnabled);
+        /* Getters */
+        SDL_Window* getWindow() const;
 
-    /* Getters */
-    SDL_Window* getWindow() const;
+    private:
 
-private:
+        SDL_Window* window;
 
-    SDL_Window* window;
+        SDL_GLContext context;
 
-    SDL_GLContext context;
+        int width = 0;
+        int height = 0;
 
-    int width = 0;
-    int height = 0;
+        Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
-    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-
-};
-
+    };
 }
 
 

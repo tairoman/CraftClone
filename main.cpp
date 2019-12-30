@@ -19,24 +19,28 @@
 #include "Engine/Chunk.h"
 #include "Engine/Camera.h"
 
-namespace ScreenData {
+namespace ScreenData
+{
     constexpr auto width = 1920;
     constexpr auto height = 1080;
 }
 
-namespace BlockData {
+namespace BlockData
+{
     // How many block types there are
     constexpr auto numTypes = 4;
     // How many vertices per block side
     constexpr auto numVertices = 6;
 }
 
-struct Config {
+struct Config
+{
     bool wireframe = false;
     bool vsync = false;
 };
 
-void renderConfig(Engine::WindowManager* manager, Config& config){
+void renderConfig(Engine::WindowManager* manager, Config& config)
+{
 
     ImGui_ImplSdlGL3_NewFrame(manager->getWindow());
     ImGui::Begin("Configuration");
@@ -99,7 +103,8 @@ std::array<float, texArraySize> texLookup{
 };
 
 
-int main() {
+int main()
+{
 
     Engine::WindowManager windowManager("Test", ScreenData::width, ScreenData::height);
     SDL_Window* window = windowManager.getWindow();
