@@ -9,8 +9,11 @@
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+//#include "World.h"
+
 namespace ChunkData
 {
+    constexpr auto BLOCK_WORLD_EXTENT = 1; // The size of a block in every direction in world space 
     constexpr auto BLOCKS_X = 16;
     constexpr auto BLOCKS_Y = 128;
     constexpr auto BLOCKS_Z = 16;
@@ -37,7 +40,8 @@ namespace Engine
     {
     public:
 
-        Chunk(glm::vec3 pos, GLuint texture);
+        Chunk(glm::vec3 pos, GLuint glTextureFogSGIX);
+        Chunk(glm::vec3 pos, GLuint texture, BlockType type);
         ~Chunk();
 
         BlockType get(int x, int y, int z) const;
@@ -49,11 +53,15 @@ namespace Engine
 
         void render();
 
+        glm::vec3 getCenterPos() const;
+
     private:
 
         void updateVbo();
+        bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
 
         glm::mat4 modelWorldMatrix;
+        glm::vec3 startPos; // A corner of the chunk from which we construct all vertex positions
         std::array<BlockType, ChunkData::BLOCKS> blocks;
         GLuint vbo;
         GLuint vao;

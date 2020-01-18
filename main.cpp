@@ -18,6 +18,7 @@
 #include "Engine/Shader.h"
 #include "Engine/Chunk.h"
 #include "Engine/Camera.h"
+#include "Engine/World.h"
 
 namespace ScreenData
 {
@@ -177,24 +178,8 @@ int main()
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
-    auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture);
-    auto* chunk1 = new Engine::Chunk(glm::vec3(0.0f, -128.0, 16.0f), texture);
-    for (auto i = 0; i < ChunkData::BLOCKS_X; i++) {
-        for (auto k = 0; k < ChunkData::BLOCKS_Z; k++){
-            chunk->set(i, ChunkData::BLOCKS_Y - 1, k, Engine::BlockType::GRASS);
-            chunk->set(i, ChunkData::BLOCKS_Y - 2, k, Engine::BlockType::DIRT);
-            chunk->set(i, ChunkData::BLOCKS_Y - 3, k, Engine::BlockType::DIRT);
-        }
-    }
-
-    for (auto i = 0; i < ChunkData::BLOCKS_X; i++){
-        for (auto j = 0; j < ChunkData::BLOCKS_Y - 3; j++){
-            for (auto k = 0; k < ChunkData::BLOCKS_Z; k++){
-                chunk->set(i, j, k, Engine::BlockType::STONE);
-                chunk1->set(i, j, k, Engine::BlockType::DIRT);
-            }
-        }
-    }
+    glm::ivec3 viewDistanceInChunks{8, 2, 8};
+    auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();
     double deltaTime = 0;
@@ -226,14 +211,8 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         simpleShader.use();
-
-        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk->getModelWorldMatrix());
         simpleShader.setUniform("texLookup", texLookup);
-        chunk->render();
-
-        simpleShader.setUniform("modelViewProjectionMatrix", camera.getProjection() * camera.getView() * chunk1->getModelWorldMatrix());
-        simpleShader.setUniform("texLookup", texLookup);
-        chunk1->render();
+        world.render(camera.getPosition(), simpleShader, camera.getProjection() * camera.getView());
 
         glUseProgram( 0 );
 

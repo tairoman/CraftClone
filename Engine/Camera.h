@@ -55,6 +55,8 @@ namespace Engine
 
         glm::mat4 getView();
 
+        glm::vec3 getPosition() const;
+
     private:
         glm::mat4 viewMatrix;
         glm::mat4 projectionMatrix;

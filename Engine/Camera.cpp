@@ -40,6 +40,11 @@ namespace Engine
         this->position = position;
     }
 
+    glm::vec3 Camera::getPosition() const
+    {
+        return this->position;
+    }
+
     void Camera::setDirection(glm::vec3 direction)
     {
         this->direction = direction;

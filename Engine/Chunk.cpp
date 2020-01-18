@@ -29,7 +29,12 @@ namespace Engine
     using vertex_data = glm::u8vec4;
 
     Chunk::Chunk(glm::vec3 pos, GLuint texture)
+        : Chunk(pos, texture, BlockType::AIR)
+    {}
+
+    Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
         : modelWorldMatrix(glm::translate(glm::mat4{1.0f}, pos))
+        , startPos(pos)
     {
 
         glGenBuffers(1, &this->vbo);
@@ -43,7 +48,7 @@ namespace Engine
         glEnableVertexAttribArray(0);
 
         for (auto& blk : this->blocks) {
-            blk = BlockType::AIR;
+            blk = typ;
         }
 
         this->texture = texture;
@@ -80,6 +85,21 @@ namespace Engine
 
         glDrawArrays(GL_TRIANGLES, 0, this->vertices);
     }
+
+    glm::vec3 Chunk::getCenterPos() const
+    {
+        return glm::vec3
+        {
+            startPos.x + ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT / 2.0f,
+            startPos.y + ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT / 2.0f,
+            startPos.z + ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT / 2.0f
+        };
+    }
+
+    /*bool Chunk::checkWorldPositionIf(int x, int y, int z, bool predicate) const
+    {
+        return predicate ? parent->get(x, y, z) : true;
+    }*/
 
     void Chunk::updateVbo()
     {
