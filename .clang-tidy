@@ -12,4 +12,5 @@ Checks: |
     -readability-magic-numbers,
     -cppcoreguidelines-avoid-magic-numbers,
     -readability-uppercase-literal-suffix,
-    -modernize-use-trailing-return-type
+    -modernize-use-trailing-return-type,
+    -cppcoreguidelines-pro-type-union-access
