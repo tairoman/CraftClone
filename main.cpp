@@ -138,8 +138,11 @@ int main()
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
 
-    glm::ivec3 viewDistanceInChunks{8, 2, 8};
+    glm::ivec3 viewDistanceInChunks{2, 2, 2};
     auto world = Engine::World{viewDistanceInChunks, texture};
+    //auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture, Engine::BlockType::DIRT);
+
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     auto now = SDL_GetTicks();
     double deltaTime = 0;
