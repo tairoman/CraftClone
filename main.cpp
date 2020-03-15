@@ -85,46 +85,6 @@ void renderConfig(Engine::WindowManager* manager, Config& config)
 
 }
 
-constexpr auto texArraySize = BlockData::numTypes * BlockData::numVertices * 2;
-std::array<float, texArraySize> texLookup{
-
-        /* 0. GRASS SIDE */
-        0.635f, 0.9375f,
-        0.759f, 0.9375f,
-        0.635f, 1.0f,
-        0.635f, 1.0f,
-        0.759f, 0.9375f,
-        0.759f, 1.0f,
-
-        /* 1. GRASS TOP */
-
-        0.507f, 0.557f,
-        0.633f, 0.557f,
-        0.507f, 0.619f,
-        0.507f, 0.619f,
-        0.633f, 0.557f,
-        0.633f, 0.619f,
-
-        /* 2. DIRT */
-
-        0.634f, 0.875f,
-        0.759f, 0.875f,
-        0.634f, 0.936f,
-        0.634f, 0.936f,
-        0.759f, 0.875f,
-        0.759f, 0.936f,
-
-        /* 3. STONE */
-
-        0.254f, 0.62f,
-        0.379f, 0.62f,
-        0.254f, 0.683f,
-        0.254f, 0.683f,
-        0.379f, 0.62f,
-        0.379f, 0.683f,
-};
-
-
 int main()
 {
 
@@ -211,7 +171,7 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         simpleShader.use();
-        simpleShader.setUniform("texLookup", texLookup);
+        //simpleShader.setUniform("texLookup", texLookup);
         world.render(camera.getPosition(), simpleShader, camera.getProjection() * camera.getView());
 
         glUseProgram( 0 );

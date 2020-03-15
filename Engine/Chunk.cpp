@@ -8,6 +8,60 @@ constexpr auto X_BLK_OFFSET = 0;
 constexpr auto Y_BLK_OFFSET = ChunkData::BLOCKS_X;
 constexpr auto Z_BLK_OFFSET = ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y;
 
+namespace {
+    struct Vertex {
+        glm::vec2 textureCoord;
+        glm::u8vec3 position;
+    };
+
+
+    // How many block types there are
+    constexpr auto numTypes = 4;
+    // How many vertices per block side
+    constexpr auto numVertices = 6;
+
+
+    constexpr auto texArraySize = numTypes * numVertices;
+    constexpr std::array<glm::vec2, texArraySize> texLookup{
+
+            /* 0. GRASS SIDE */
+            glm::vec2{ 0.635f, 0.9375f },
+            glm::vec2{ 0.759f, 0.9375f },
+            glm::vec2{ 0.635f, 1.0f },
+            glm::vec2{ 0.635f, 1.0f },
+            glm::vec2{ 0.759f, 0.9375f },
+            glm::vec2{ 0.759f, 1.0f },
+
+            /* 1. GRASS TOP */
+
+            glm::vec2{ 0.507f, 0.557f },
+            glm::vec2{ 0.633f, 0.557f },
+            glm::vec2{ 0.507f, 0.619f },
+            glm::vec2{ 0.507f, 0.619f },
+            glm::vec2{ 0.633f, 0.557f },
+            glm::vec2{ 0.633f, 0.619f },
+
+            /* 2. DIRT */
+
+            glm::vec2{ 0.634f, 0.875f },
+            glm::vec2{ 0.759f, 0.875f },
+            glm::vec2{ 0.634f, 0.936f },
+            glm::vec2{ 0.634f, 0.936f },
+            glm::vec2{ 0.759f, 0.875f },
+            glm::vec2{ 0.759f, 0.936f },
+
+            /* 3. STONE */
+
+            glm::vec2{ 0.254f, 0.62f },
+            glm::vec2{ 0.379f, 0.62f },
+            glm::vec2{ 0.254f, 0.683f },
+            glm::vec2{ 0.254f, 0.683f },
+            glm::vec2{ 0.379f, 0.62f },
+            glm::vec2{ 0.379f, 0.683f },
+    };
+
+}
+
 namespace Engine
 {
 
@@ -26,7 +80,7 @@ namespace Engine
         return 0;
     };
 
-    using vertex_data = glm::u8vec4;
+    //using vertex_data = glm::u8vec4;
 
     Chunk::Chunk(glm::vec3 pos, GLuint texture)
         : Chunk(pos, texture, BlockType::AIR)
@@ -44,8 +98,10 @@ namespace Engine
 
         glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
 
-        glVertexAttribPointer(0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, textureCoord));
+        glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
         glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
 
         for (auto& blk : this->blocks) {
             blk = typ;
@@ -105,7 +161,7 @@ namespace Engine
     {
 
         this->changed = false;
-        std::array<vertex_data, ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y * ChunkData::BLOCKS_Z * 6 * 6> vertices{};
+        std::array<Vertex, ChunkData::BLOCKS_X * ChunkData::BLOCKS_Y * ChunkData::BLOCKS_Z * 6 * 6> vertices{};
         unsigned int i = 0;
 
         for(auto z = 0; z < ChunkData::BLOCKS_Z; ++z) {
@@ -124,62 +180,62 @@ namespace Engine
 
                     // - X
                     if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x, y, z, offset_side + 0);
-                        vertices[i++] = vertex_data(x, y, z + 1, offset_side + 1);
-                        vertices[i++] = vertex_data(x, y + 1, z, offset_side + 2);
-                        vertices[i++] = vertex_data(x, y + 1, z, offset_side + 3);
-                        vertices[i++] = vertex_data(x, y, z + 1, offset_side + 4);
-                        vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x, y + 1, z + 1) };
                     }
 
                     // + X
                     if (x == ChunkData::BLOCKS_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 0);
-                        vertices[i++] = vertex_data(x + 1, y, z, offset_side + 1);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 2);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 3);
-                        vertices[i++] = vertex_data(x + 1, y, z, offset_side + 4);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x + 1, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x + 1, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x + 1, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x + 1, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x + 1, y + 1, z) };
                     }
 
                     // - Y
                     if (y == 0 || this->get(x,y-1,z) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x, y, z + 1, offset_bottom + 0);
-                        vertices[i++] = vertex_data(x, y, z, offset_bottom + 1);
-                        vertices[i++] = vertex_data(x + 1, y, z + 1, offset_bottom + 2);
-                        vertices[i++] = vertex_data(x + 1, y, z + 1, offset_bottom + 3);
-                        vertices[i++] = vertex_data(x, y, z, offset_bottom + 4);
-                        vertices[i++] = vertex_data(x + 1, y, z, offset_bottom + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x + 1, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x + 1, y, z) };
                     }
 
                     // + Y
                     if (y == ChunkData::BLOCKS_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x, y + 1, z, offset_top + 0);
-                        vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 1);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 2);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z, offset_top + 3);
-                        vertices[i++] = vertex_data(x, y + 1, z + 1, offset_top + 4);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_top + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x + 1, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x + 1, y + 1, z + 1) };
                     }
 
                     // - Z
                     if (z == 0 || this->get(x,y,z-1) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x + 1, y, z, offset_side + 0);
-                        vertices[i++] = vertex_data(x, y, z, offset_side + 1);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 2);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z, offset_side + 3);
-                        vertices[i++] = vertex_data(x, y, z, offset_side + 4);
-                        vertices[i++] = vertex_data(x, y + 1, z, offset_side + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x + 1, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x + 1, y + 1, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x, y, z) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x, y + 1, z) };
                     }
 
                     // + Z
                     if (z == ChunkData::BLOCKS_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
-                        vertices[i++] = vertex_data(x, y, z + 1, offset_side + 0);
-                        vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 1);
-                        vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 2);
-                        vertices[i++] = vertex_data(x, y + 1, z + 1, offset_side + 3);
-                        vertices[i++] = vertex_data(x + 1, y, z + 1, offset_side + 4);
-                        vertices[i++] = vertex_data(x + 1, y + 1, z + 1, offset_side + 5);
+                        vertices[i++] = Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 1], glm::vec3(x + 1, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 2], glm::vec3(x, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 3], glm::vec3(x, y + 1, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 4], glm::vec3(x + 1, y, z + 1) };
+                        vertices[i++] = Vertex { texLookup[offset_side + 5], glm::vec3(x + 1, y + 1, z + 1) };
                     }
                 }
             }
@@ -188,7 +244,7 @@ namespace Engine
         this->vertices = i;
 
         glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-        glBufferData(GL_ARRAY_BUFFER, i * sizeof(vertex_data), &vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, i * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
     }
 }
