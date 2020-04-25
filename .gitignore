@@ -4,6 +4,7 @@ imgui.ini
 # Build
 cmake-build-debug/
 build/
+CraftBone
 
 # cmake
 CMakeCache.txt

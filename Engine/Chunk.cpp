@@ -81,12 +81,6 @@ namespace Engine
         return 0;
     };
 
-    //using vertex_data = glm::u8vec4;
-
-    Chunk::Chunk(glm::vec3 pos, GLuint texture)
-        : Chunk(pos, texture, BlockType::AIR)
-    {}
-
     Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
         : modelWorldMatrix(glm::translate(glm::mat4{1.0f}, pos))
         , startPos(pos)
@@ -152,11 +146,6 @@ namespace Engine
             startPos.z + ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT / 2.0f
         };
     }
-
-    /*bool Chunk::checkWorldPositionIf(int x, int y, int z, bool predicate) const
-    {
-        return predicate ? parent->get(x, y, z) : true;
-    }*/
 
     void Chunk::updateVbo()
     {

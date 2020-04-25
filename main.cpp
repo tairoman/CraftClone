@@ -26,14 +26,6 @@ namespace ScreenData
     constexpr auto height = 1080;
 }
 
-namespace BlockData
-{
-    // How many block types there are
-    constexpr auto numTypes = 4;
-    // How many vertices per block side
-    constexpr auto numVertices = 6;
-}
-
 namespace Engine
 {
     void initialize()
@@ -61,28 +53,42 @@ struct Config
     bool vsync = false;
 };
 
-void renderConfig(Engine::WindowManager* manager, Config& config)
+struct Stats {
+    std::size_t currentFPS = 0;
+};
+
+static Stats stats;
+static Config config;
+
+static bool showingConfig = false;
+
+void renderImGui(Engine::WindowManager* manager)
 {
-
     ImGui_ImplSdlGL3_NewFrame(manager->getWindow());
-    ImGui::Begin("Configuration");
+
+    if (showingConfig) {
+        ImGui::Begin("Config");
     
-    if (ImGui::Checkbox("Wireframe Mode", &config.wireframe)) {
-        if (config.wireframe){
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        } else {
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        if (ImGui::Checkbox("Wireframe Mode", &config.wireframe)) {
+            glPolygonMode(GL_FRONT_AND_BACK, config.wireframe ? GL_LINE : GL_FILL);
         }
+
+        if (ImGui::Checkbox("VSync", &config.vsync)) {
+            manager->setVSync(config.vsync);
+        }
+
+        ImGui::End();
     }
 
-    if (ImGui::Checkbox("VSync", &config.vsync)) {
-        manager->setVSync(config.vsync);
-    }
+    ImGui::SetNextWindowPos({ScreenData::width * 0.85, ScreenData::height * 0.05});
+    ImGui::SetNextWindowSize({ScreenData::width * 0.15, 0});
+    ImGui::Begin("Info");
+    auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
+    ImGui::Text(fpsText.c_str());
 
     ImGui::End();
 
     ImGui::Render();
-
 }
 
 int main()
@@ -94,8 +100,6 @@ int main()
     SDL_Window* window = windowManager.getWindow();
 
     ImGui_ImplSdlGL3_Init(window);
-
-    Config config{};
 
     int textureAtlasWidth = -1;
     int textureAtlasHeight = -1;
@@ -122,7 +126,6 @@ int main()
     glGenerateMipmap(GL_TEXTURE_2D);
 
     bool running = true;
-    bool showingConfig = false;
 
     SDL_Event event{};
 
@@ -142,8 +145,6 @@ int main()
     auto world = Engine::World{viewDistanceInChunks, texture};
     //auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture, Engine::BlockType::DIRT);
 
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
     auto now = SDL_GetTicks();
     double deltaTime = 0;
     double avgDeltaTime = 1;
@@ -161,8 +162,8 @@ int main()
         avgDeltaTime = decayFactor * avgDeltaTime + (1.0 - decayFactor) * deltaTime;
 		
         // Display calculated FPS of the moving average
-        const auto currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
-        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(currentFPS)).c_str());
+        stats.currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
+        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(stats.currentFPS)).c_str());
 
         if (!showingConfig) {
             camera.update();
@@ -174,14 +175,11 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         simpleShader.use();
-        //simpleShader.setUniform("texLookup", texLookup);
         world.render(camera.getPosition(), simpleShader, camera.getProjection() * camera.getView());
 
         glUseProgram( 0 );
 
-        if (showingConfig){
-            renderConfig(&windowManager, config);
-        }
+        renderImGui(&windowManager);
 
         SDL_GL_SwapWindow(window);
 

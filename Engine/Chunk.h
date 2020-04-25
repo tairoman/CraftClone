@@ -40,8 +40,7 @@ namespace Engine
     {
     public:
 
-        Chunk(glm::vec3 pos, GLuint glTextureFogSGIX);
-        Chunk(glm::vec3 pos, GLuint texture, BlockType type);
+        Chunk(glm::vec3 pos, GLuint texture, BlockType type = BlockType::AIR);
         ~Chunk();
 
         BlockType get(int x, int y, int z) const;
