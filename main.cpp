@@ -93,7 +93,6 @@ void renderImGui(Engine::WindowManager* manager)
 
 int main()
 {
-
     Engine::initialize();
 
     Engine::WindowManager windowManager("Test", ScreenData::width, ScreenData::height);
@@ -104,7 +103,7 @@ int main()
     int textureAtlasWidth = -1;
     int textureAtlasHeight = -1;
 
-    stbi_set_flip_vertically_on_load(static_cast<int>(true));
+    stbi_set_flip_vertically_on_load((int) true);
     const auto tilesFile = "assets/tiles.png";
     int comp = -1;
     std::unique_ptr<stbi_uc> image{ stbi_load(tilesFile, &textureAtlasWidth, &textureAtlasHeight, &comp, STBI_rgb_alpha) };
@@ -139,16 +138,14 @@ int main()
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(-1.0f, 0.0f, 3.0f));
+    camera.setPosition(glm::vec3(-1.0f, 10.0f, 3.0f));
 
     glm::ivec3 viewDistanceInChunks{2, 2, 2};
     auto world = Engine::World{viewDistanceInChunks, texture};
-    //auto* chunk = new Engine::Chunk(glm::vec3(0.0f, -128.0, 0.0f), texture, Engine::BlockType::DIRT);
 
     auto now = SDL_GetTicks();
     double deltaTime = 0;
     double avgDeltaTime = 1;
-
 
     while (running) {
 
@@ -163,7 +160,6 @@ int main()
 		
         // Display calculated FPS of the moving average
         stats.currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
-        SDL_SetWindowTitle(window, ("FPS: " + std::to_string(stats.currentFPS)).c_str());
 
         if (!showingConfig) {
             camera.update();
@@ -192,22 +188,6 @@ int main()
             } else if (event.type == SDL_KEYUP) {
 
                 switch (event.key.keysym.sym) {
-
-                    case SDLK_0:
-                        backgroundColor[0] = 0.8f;
-                        backgroundColor[1] = 0.2f;
-                        backgroundColor[2] = 0.2f;
-                        break;
-                    case SDLK_1:
-                        backgroundColor[0] = 0.2f;
-                        backgroundColor[1] = 0.8f;
-                        backgroundColor[2] = 0.2f;
-                        break;
-                    case SDLK_2:
-                        backgroundColor[0] = 0.2f;
-                        backgroundColor[1] = 0.2f;
-                        backgroundColor[2] = 0.8f;
-                        break;
                     case SDLK_q:
                         showingConfig = !showingConfig;
                         SDL_SetRelativeMouseMode(showingConfig ? SDL_FALSE : SDL_TRUE);

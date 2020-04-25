@@ -15,12 +15,10 @@ namespace {
         glm::u8vec3 position;
     };
 
-
     // How many block types there are
     constexpr auto numTypes = 4;
     // How many vertices per block side
     constexpr auto numVertices = 6;
-
 
     constexpr auto texArraySize = numTypes * numVertices;
     constexpr std::array<glm::vec2, texArraySize> texLookup{
