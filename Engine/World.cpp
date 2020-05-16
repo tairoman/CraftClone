@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+#include "Chunk.h"
 #include "World.h"
 
 
@@ -23,15 +24,49 @@ namespace Engine
         : viewDistance(convertViewDistance(viewDistanceInChunks))
     {
         chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
-        for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++)
+        Chunk* lastX = nullptr;
+        Chunk* lastY = nullptr;
+        Chunk* lastZ = nullptr;
+        for (auto i = 0; i < viewDistanceInChunks.x * 2; i++)
         {
-            for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++)
+            for (auto j = 0; j < viewDistanceInChunks.y * 2; j++)
             {
-                for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++)
+                for (auto k = 0; k < viewDistanceInChunks.z * 2; k++)
                 {
-                    chunks.emplace_back(std::make_unique<Chunk>(convertViewDistance(glm::ivec3{x,y,z}), texture, y < 0 ? BlockType::DIRT : BlockType::AIR));
+                    auto worldSize = convertViewDistance(glm::ivec3{
+                        i - viewDistanceInChunks.x,
+                        j - viewDistanceInChunks.y,
+                        k - viewDistanceInChunks.z
+                    });
+                    auto chunk = std::make_unique<Chunk>(worldSize, texture, BlockType::DIRT);
+                    
+                    chunk->setNeighbor(lastX, Direction::NegX);
+                    if (lastX) {
+                        lastX->setNeighbor(chunk.get(), Direction::PlusX);
+                    }
+                    chunk->setNeighbor(lastY, Direction::NegY);
+                    if (lastY) {
+                        lastY->setNeighbor(chunk.get(), Direction::PlusY);
+                    }
+                    chunk->setNeighbor(lastZ, Direction::NegZ);
+                    if (lastZ) {
+                        lastZ->setNeighbor(chunk.get(), Direction::PlusZ);
+                    }
+
+                    chunks.push_back(std::move(chunk));
+                    lastZ = chunks[chunks.size() - 1].get();
+                    if (j > 0) {
+                        lastY = chunks[chunks.size() - viewDistanceInChunks.z * 2].get();
+                    }
+                    if (i > 0) {
+                        lastX = chunks[chunks.size() - viewDistanceInChunks.z * 2 * viewDistanceInChunks.y * 2].get();
+                    }
                 }
+                lastZ = nullptr;
+                
             }
+            lastY = nullptr;
+            
         }
     }
 

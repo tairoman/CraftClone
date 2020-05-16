@@ -59,6 +59,7 @@ struct Stats {
 
 static Stats stats;
 static Config config;
+static Engine::Camera* playerCamera;
 
 static bool showingConfig = false;
 
@@ -81,10 +82,17 @@ void renderImGui()
     }
 
     ImGui::SetNextWindowPos({ScreenData::width * 0.85, ScreenData::height * 0.05});
-    ImGui::SetNextWindowSize({ScreenData::width * 0.15, 0});
+    ImGui::SetNextWindowSize({ScreenData::width * 0.15, 200});
     ImGui::Begin("Info");
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
     ImGui::Text(fpsText.c_str());
+
+    auto posXText = std::string("x:") + std::to_string(playerCamera->getPosition().x);
+    auto posYText = std::string("y:") + std::to_string(playerCamera->getPosition().y);
+    auto posZText = std::string("z:") + std::to_string(playerCamera->getPosition().z);
+    ImGui::Text(posXText.c_str());
+    ImGui::Text(posYText.c_str());
+    ImGui::Text(posZText.c_str());
 
     ImGui::End();
 
@@ -138,9 +146,10 @@ int main()
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(-1.0f, 10.0f, 3.0f));
+    camera.setPosition(glm::vec3(0.0f, 300.0f, 0.0f));
+    playerCamera = &camera;
 
-    glm::ivec3 viewDistanceInChunks{5, 2, 5};
+    glm::ivec3 viewDistanceInChunks{1, 1, 1};
     auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();

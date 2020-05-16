@@ -29,6 +29,16 @@ namespace Engine
         STONE,
     };
 
+    enum class Direction
+    {
+        NegX = 0,
+        PlusX = 1,
+        NegY = 2,
+        PlusY = 3,
+        NegZ = 4,
+        PlusZ = 5,
+    };
+
     enum class BlockSide
     {
         TOP, BOTTOM, SIDE
@@ -48,6 +58,9 @@ namespace Engine
             return modelWorldMatrix;
         }
 
+        void setNeighbor(Chunk* chunk, Direction dir);
+        Chunk* neighbor(Direction dir);
+
         void render();
 
         glm::vec3 getCenterPos() const;
@@ -60,6 +73,7 @@ namespace Engine
         glm::mat4 modelWorldMatrix;
         glm::vec3 startPos; // A corner of the chunk from which we construct all vertex positions
         std::array<BlockType, ChunkData::BLOCKS> blocks;
+        std::array<Chunk*, 6> neighbors;
         GLuint vbo;
         GLuint vao;
         GLuint texture;

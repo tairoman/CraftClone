@@ -100,6 +100,8 @@ namespace Engine
             blk = typ;
         }
 
+        neighbors.fill(nullptr);
+
         this->texture = texture;
 
     }
@@ -135,6 +137,16 @@ namespace Engine
         glDrawArrays(GL_TRIANGLES, 0, this->vertices);
     }
 
+    void Chunk::setNeighbor(Chunk* chunk, Direction dir)
+    {
+        neighbors[(std::size_t)dir] = chunk;
+    }
+
+    Chunk* Chunk::neighbor(Direction dir)
+    {
+        return neighbors[std::size_t(dir)];
+    }
+
     glm::vec3 Chunk::getCenterPos() const
     {
         return glm::vec3
@@ -167,7 +179,12 @@ namespace Engine
                     const auto offset_bottom = atlasLookup(typ, BlockSide::BOTTOM);
 
                     // - X
-                    if (x == 0 || this->get(x-1,y,z) == BlockType::AIR) {
+                    auto negXNeighbor = neighbor(Direction::NegX);
+                    bool negXCond = x != 0 ? this->get(x-1,y,z) == BlockType::AIR : (negXNeighbor ? negXNeighbor->get(ChunkData::BLOCKS_X - 1, y, z) == BlockType::AIR : true);
+                    //(x == 0 && negXNeighbor && negXNeighbor->get(ChunkData::BLOCKS_X - 1, y, z) == BlockType::AIR) 
+                                    // this->get(x-1,y,z) == BlockType::AIR
+                                    // || (x == 0 && negXNeighbor == nullptr);
+                    if (negXCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x, y + 1, z) });
@@ -177,7 +194,13 @@ namespace Engine
                     }
 
                     // + X
-                    if (x == ChunkData::BLOCKS_X - 1 || this->get(x+1,y,z) == BlockType::AIR) {
+                    auto posXNeighbor = neighbor(Direction::PlusX);
+                    bool posXCond = x != ChunkData::BLOCKS_X - 1 ? this->get(x+1,y,z) == BlockType::AIR : (posXNeighbor ? posXNeighbor->get(0, y, z) == BlockType::AIR : true);
+                    //x == ChunkData::BLOCKS_X - 1;
+                    //(x == ChunkData::BLOCKS_X - 1 && posXNeighbor && posXNeighbor->get(0, y, z) == BlockType::AIR) 
+                                    // this->get(x+1,y,z) == BlockType::AIR
+                                    // || (x == ChunkData::BLOCKS_X - 1 && posXNeighbor == nullptr);
+                    if (posXCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x + 1, y, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x + 1, y, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z + 1) });
@@ -187,7 +210,12 @@ namespace Engine
                     }
 
                     // - Y
-                    if (y == 0 || this->get(x,y-1,z) == BlockType::AIR) {
+                    auto negYNeighbor = neighbor(Direction::NegY);
+                    bool negYCond = y != 0 ? this->get(x,y-1,z) == BlockType::AIR : (negYNeighbor ? negYNeighbor->get(x, ChunkData::BLOCKS_Y - 1, z) == BlockType::AIR : true);
+                    //(y == 0 && negYNeighbor && negYNeighbor->get(x, ChunkData::BLOCKS_Y - 1, z) == BlockType::AIR) 
+                                    //  this->get(x,y-1,z) == BlockType::AIR
+                                    // || (y == 0 && negYNeighbor == nullptr);
+                    if (negYCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y, z + 1) });
@@ -197,7 +225,12 @@ namespace Engine
                     }
 
                     // + Y
-                    if (y == ChunkData::BLOCKS_Y - 1 || this->get(x,y+1,z) == BlockType::AIR) {
+                    auto posYNeighbor = neighbor(Direction::PlusY);
+                    bool posYCond = y != ChunkData::BLOCKS_Y - 1 ? this->get(x,y+1,z) == BlockType::AIR : (posYNeighbor ? posYNeighbor->get(x, 0, z) == BlockType::AIR : true);
+                    // (y == ChunkData::BLOCKS_Y - 1 && posYNeighbor && posYNeighbor->get(x, 0, z) == BlockType::AIR) 
+                    //                  this->get(x,y+1,z) == BlockType::AIR
+                                    //|| (y == ChunkData::BLOCKS_Y - 1 && posYNeighbor == nullptr);
+                    if (posYCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x, y + 1, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x, y + 1, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z) });
@@ -207,7 +240,12 @@ namespace Engine
                     }
 
                     // - Z
-                    if (z == 0 || this->get(x,y,z-1) == BlockType::AIR) {
+                    auto negZNeighbor = neighbor(Direction::NegZ);
+                    bool negZCond = z != 0 ? this->get(x,y,z-1) == BlockType::AIR : (negZNeighbor ? negZNeighbor->get(x, y, ChunkData::BLOCKS_Z - 1) == BlockType::AIR : true);
+                    //(z == 0 && negZNeighbor && negZNeighbor->get(x, y, ChunkData::BLOCKS_Z - 1) == BlockType::AIR) 
+                                    //  this->get(x,y,z-1) == BlockType::AIR
+                                    // || (z == 0 && negZNeighbor == nullptr);
+                    if (negZCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x + 1, y, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x, y, z) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x + 1, y + 1, z) });
@@ -217,7 +255,12 @@ namespace Engine
                     }
 
                     // + Z
-                    if (z == ChunkData::BLOCKS_Z - 1 || this->get(x,y,z+1) == BlockType::AIR) {
+                    auto posZNeighbor = neighbor(Direction::PlusZ);
+                    bool posZCond = z != ChunkData::BLOCKS_Z - 1 ? this->get(x,y,z+1) == BlockType::AIR : (posZNeighbor ? posZNeighbor->get(x, y, 0) == BlockType::AIR : true);
+                    //(z == ChunkData::BLOCKS_Z - 1 && posZNeighbor && posZNeighbor->get(x, y, z+1) == BlockType::AIR) 
+                                    //  this->get(x,y,z+1) == BlockType::AIR
+                                    // || (z == ChunkData::BLOCKS_Z - 1 && posZNeighbor == nullptr);
+                    if (posZCond) {
                         vertices.emplace_back(Vertex { texLookup[offset_side + 0], glm::vec3(x, y, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 1], glm::vec3(x + 1, y, z + 1) });
                         vertices.emplace_back(Vertex { texLookup[offset_side + 2], glm::vec3(x, y + 1, z + 1) });
