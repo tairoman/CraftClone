@@ -9,15 +9,13 @@
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-//#include "World.h"
-
 namespace ChunkData
 {
-    constexpr auto BLOCK_WORLD_EXTENT = 1; // The size of a block in every direction in world space 
-    constexpr auto BLOCKS_X = 16;
-    constexpr auto BLOCKS_Y = 128;
-    constexpr auto BLOCKS_Z = 16;
-    constexpr auto BLOCKS = BLOCKS_X * BLOCKS_Y * BLOCKS_Z;
+    constexpr inline auto BLOCK_WORLD_EXTENT = 1; // The size of a block in every direction in world space 
+    constexpr inline auto BLOCKS_X = 16;
+    constexpr inline auto BLOCKS_Y = 128;
+    constexpr inline auto BLOCKS_Z = 16;
+    constexpr inline auto BLOCKS = BLOCKS_X * BLOCKS_Y * BLOCKS_Z;
 }
 
 namespace Engine

@@ -8,68 +8,68 @@
 namespace Engine
 {
 
-    class Camera
-    {
+class Camera
+{
 
-    public:
+public:
 
-        Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
+    Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
 
-        Camera(float fovy, float aspectRatio, float near, float far);
+    Camera(float fovy, float aspectRatio, float near, float far);
 
-        void setPosition(glm::vec3 position);
+    void setPosition(glm::vec3 position);
 
-        void setDirection(glm::vec3 direction);
+    void setDirection(glm::vec3 direction);
 
-        void setUp(glm::vec3 up);
+    void setUp(glm::vec3 up);
 
-        void setMoveSpeed(float speed);
+    void setMoveSpeed(float speed);
 
-        void setRotSpeed(float speed);
+    void setRotSpeed(float speed);
 
-        void setPerpective(float fovy, float aspectRatio, float near, float far);
+    void setPerpective(float fovy, float aspectRatio, float near, float far);
 
-        void update();
+    void update();
 
-        void rotate(float deltaX, float deltaY);
+    void rotate(float deltaX, float deltaY);
 
-        void moveLeft();
+    void moveLeft();
 
-        void moveLeft(float speed);
+    void moveLeft(float speed);
 
-        void moveRight();
+    void moveRight();
 
-        void moveRight(float speed);
+    void moveRight(float speed);
 
-        void moveForward();
+    void moveForward();
 
-        void moveForward(float speed);
+    void moveForward(float speed);
 
-        void moveBack();
+    void moveBack();
 
-        void moveBack(float speed);
+    void moveBack(float speed);
 
-        void setSpeedMultiplier(float mult);
+    void setSpeedMultiplier(float mult);
 
-        glm::mat4 getProjection();
+    glm::mat4 getProjection();
 
-        glm::mat4 getView();
+    glm::mat4 getView();
 
-        glm::vec3 getPosition() const;
+    glm::vec3 getPosition() const;
 
-    private:
-        glm::mat4 viewMatrix;
-        glm::mat4 projectionMatrix;
+private:
+    glm::mat4 m_viewMatrix;
+    glm::mat4 m_projectionMatrix;
 
-        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 m_direction = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        float moveSpeed = 0.1f;
-        float rotSpeed = 0.01f;
-        float speedMultiplier = 1.0f;
+    float m_moveSpeed = 0.1f;
+    float m_rotSpeed = 0.01f;
+    float m_speedMultiplier = 1.0f;
 
-    };
+};
 
 }
 

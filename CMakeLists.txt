@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(CraftBone)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -lSDL2 -lGL -lGLEW")
@@ -13,5 +13,6 @@ file(GLOB imgui
         "imgui_impl_sdl_gl3.cpp"
         )
 
-set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h Engine/World.cpp Engine/World.h Engine/SDL/WindowPtr.h)
+set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h Engine/World.cpp Engine/World.h)
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})
+target_link_libraries(CraftBone SDL2 GL GLEW)

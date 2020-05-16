@@ -62,9 +62,9 @@ static Config config;
 
 static bool showingConfig = false;
 
-void renderImGui(Engine::WindowManager* manager)
+void renderImGui()
 {
-    ImGui_ImplSdlGL3_NewFrame(manager->getWindow());
+    ImGui_ImplSdlGL3_NewFrame(Engine::WindowManager::instance().getWindow());
 
     if (showingConfig) {
         ImGui::Begin("Config");
@@ -74,7 +74,7 @@ void renderImGui(Engine::WindowManager* manager)
         }
 
         if (ImGui::Checkbox("VSync", &config.vsync)) {
-            manager->setVSync(config.vsync);
+            Engine::WindowManager::instance().setVSync(config.vsync);
         }
 
         ImGui::End();
@@ -95,8 +95,8 @@ int main()
 {
     Engine::initialize();
 
-    Engine::WindowManager windowManager("Test", ScreenData::width, ScreenData::height);
-    SDL_Window* window = windowManager.getWindow();
+    Engine::WindowManager::instance().setSize(ScreenData::width, ScreenData::height);
+    SDL_Window* window = Engine::WindowManager::instance().getWindow();
 
     ImGui_ImplSdlGL3_Init(window);
 
@@ -140,7 +140,7 @@ int main()
     Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(-1.0f, 10.0f, 3.0f));
 
-    glm::ivec3 viewDistanceInChunks{2, 2, 2};
+    glm::ivec3 viewDistanceInChunks{5, 2, 5};
     auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();
@@ -175,7 +175,7 @@ int main()
 
         glUseProgram( 0 );
 
-        renderImGui(&windowManager);
+        renderImGui();
 
         SDL_GL_SwapWindow(window);
 
@@ -183,7 +183,10 @@ int main()
 
             ImGui_ImplSdlGL3_ProcessEvent(&event);
 
-            if (event.type == SDL_QUIT || (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE)) {
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && showingConfig) {
+                showingConfig = false;
+            }
+            else if (event.type == SDL_QUIT || (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE)) {
                 running = false;
             } else if (event.type == SDL_KEYUP) {
 

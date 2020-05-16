@@ -21,7 +21,7 @@ namespace {
     constexpr auto numVertices = 6;
 
     constexpr auto texArraySize = numTypes * numVertices;
-    constexpr std::array<glm::vec2, texArraySize> texLookup{
+    const std::array<glm::vec2, texArraySize> texLookup{
 
             /* 0. GRASS SIDE */
             glm::vec2{ 0.635f, 0.9375f },

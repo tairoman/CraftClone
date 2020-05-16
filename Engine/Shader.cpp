@@ -1,4 +1,5 @@
 
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -43,7 +44,7 @@ namespace Engine
         int ok;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
         
-        if(!static_cast<bool>(ok)) {
+        if(!(bool) ok) {
             
             // Get the error message
 
@@ -90,7 +91,7 @@ namespace Engine
 
     void Shader::setUniform(const std::string &name, glm::mat4 value) const
     {
-        glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0].x);
+        glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(value));
     }
 
 }

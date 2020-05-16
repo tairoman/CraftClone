@@ -19,13 +19,11 @@ namespace Engine
         //Engine::BlockType get(int x, int y, int z) const;
 
     private:
-
         void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
         bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
 
         std::vector<std::unique_ptr<Chunk>> chunks;
         glm::vec3 viewDistance;
-
     };
 }
 

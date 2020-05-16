@@ -5,7 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
 
-
 #include "Camera.h"
 
 namespace Engine
@@ -13,118 +12,118 @@ namespace Engine
 
     Camera::Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
     {
-        this->position = position;
-        this->direction = direction;
-        this->up = up;
+        m_position = position;
+        m_direction = direction;
+        m_up = up;
 
-        this->setPerpective(fovy, aspectRatio, near, far);
+        setPerpective(fovy, aspectRatio, near, far);
     }
 
     Camera::Camera(float fovy, float aspectRatio, float near, float far)
     {
-        this->setPerpective(fovy, aspectRatio, near, far);
+        setPerpective(fovy, aspectRatio, near, far);
     }
 
     void Camera::setPerpective(float fovy, float aspectRatio, float near, float far)
     {
-        this->projectionMatrix = glm::perspective(glm::radians(fovy), aspectRatio, near, far);
+        m_projectionMatrix = glm::perspective(glm::radians(fovy), aspectRatio, near, far);
     }
 
     void Camera::update()
     {
-        this->viewMatrix = glm::lookAt(this->position, this->position + this->direction, this->up);
+        m_viewMatrix = glm::lookAt(m_position, m_position + m_direction, m_up);
     }
 
     void Camera::setPosition(glm::vec3 position)
     {
-        this->position = position;
+        m_position = position;
     }
 
     glm::vec3 Camera::getPosition() const
     {
-        return this->position;
+        return m_position;
     }
 
     void Camera::setDirection(glm::vec3 direction)
     {
-        this->direction = direction;
+        m_direction = direction;
     }
 
     void Camera::setUp(glm::vec3 up)
     {
-        this->up = up;
+        m_up = up;
     }
 
     void Camera::rotate(float deltaX, float deltaY)
     {
-        glm::mat4 yaw = glm::rotate(this->rotSpeed * -deltaX, this->up);
-        glm::mat4 pitch = glm::rotate(this->rotSpeed * -deltaY,
-                                    glm::normalize(cross(this->direction, this->up)));
-        this->direction = glm::vec3(pitch * yaw * glm::vec4(this->direction, 0.0f));
+        glm::mat4 yaw = glm::rotate(m_rotSpeed * -deltaX, m_up);
+        glm::mat4 pitch = glm::rotate(m_rotSpeed * -deltaY,
+                                    glm::normalize(cross(m_direction, m_up)));
+        m_direction = glm::vec3(pitch * yaw * glm::vec4(m_direction, 0.0f));
     }
 
     void Camera::moveLeft()
     {
-        this->moveLeft(this->moveSpeed);
+        this->moveLeft(m_moveSpeed);
     }
 
     void Camera::moveLeft(float speed)
     {
-        this->position -= glm::normalize(glm::cross(this->direction, this->up)) * this->speedMultiplier * speed;
+        m_position -= glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed;
     }
 
     void Camera::moveRight()
     {
-        this->moveRight(this->moveSpeed);
+        this->moveRight(m_moveSpeed);
     }
 
     void Camera::moveRight(float speed)
     {
-        this->position += glm::normalize(glm::cross(this->direction, this->up)) * this->speedMultiplier * speed;
+        m_position += glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed;
     }
 
     void Camera::moveForward()
     {
-        this->moveForward(this->moveSpeed);
+        this->moveForward(m_moveSpeed);
     }
 
     void Camera::moveForward(float speed)
     {
-        this->position += this->speedMultiplier * speed * this->direction;
+        m_position += m_speedMultiplier * speed * m_direction;
     }
 
     void Camera::moveBack()
     {
-        this->moveBack(this->moveSpeed);
+        this->moveBack(m_moveSpeed);
     }
 
     void Camera::moveBack(float speed)
     {
-        this->position -= this->speedMultiplier * speed * this->direction;
+        m_position -= m_speedMultiplier * speed * m_direction;
     }
 
     void Camera::setMoveSpeed(float speed)
     {
-        this->moveSpeed = speed;
+        m_moveSpeed = speed;
     }
 
     void Camera::setRotSpeed(float speed)
     {
-        this->rotSpeed = speed;
+        m_rotSpeed = speed;
     }
 
     glm::mat4 Camera::getProjection()
     {
-        return this->projectionMatrix;
+        return m_projectionMatrix;
     }
 
     glm::mat4 Camera::getView()
     {
-        return this->viewMatrix;
+        return m_viewMatrix;
     }
 
     void Camera::setSpeedMultiplier(float mult)
     {
-        this->speedMultiplier = mult;
+        m_speedMultiplier = mult;
     }
 }
