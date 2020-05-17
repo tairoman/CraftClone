@@ -149,7 +149,7 @@ int main()
     camera.setPosition(glm::vec3(0.0f, 300.0f, 0.0f));
     playerCamera = &camera;
 
-    glm::ivec3 viewDistanceInChunks{1, 1, 1};
+    glm::ivec3 viewDistanceInChunks{5, 2, 5};
     auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();

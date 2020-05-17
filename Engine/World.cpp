@@ -33,6 +33,16 @@ namespace Engine
             {
                 for (auto k = 0; k < viewDistanceInChunks.z * 2; k++)
                 {
+                    if (k > 0) {
+                        lastZ = chunks[chunks.size() - 1].get();
+                    }
+                    if (j > 0) {
+                        lastY = chunks[chunks.size() - viewDistanceInChunks.z * 2].get();
+                    }
+                    if (i > 0) {
+                        lastX = chunks[chunks.size() - viewDistanceInChunks.z * 2 * viewDistanceInChunks.y * 2].get();
+                    }
+
                     auto worldSize = convertViewDistance(glm::ivec3{
                         i - viewDistanceInChunks.x,
                         j - viewDistanceInChunks.y,
@@ -54,13 +64,6 @@ namespace Engine
                     }
 
                     chunks.push_back(std::move(chunk));
-                    lastZ = chunks[chunks.size() - 1].get();
-                    if (j > 0) {
-                        lastY = chunks[chunks.size() - viewDistanceInChunks.z * 2].get();
-                    }
-                    if (i > 0) {
-                        lastX = chunks[chunks.size() - viewDistanceInChunks.z * 2 * viewDistanceInChunks.y * 2].get();
-                    }
                 }
                 lastZ = nullptr;
                 
