@@ -63,7 +63,7 @@ namespace Engine
 
         void render();
 
-        glm::vec3 getCenterPos() const;
+        glm::ivec3 getCenterPos() const;
 
     private:
 
@@ -71,7 +71,7 @@ namespace Engine
         bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
 
         glm::mat4 m_modelWorldMatrix;
-        glm::vec3 m_startPos; // A corner of the chunk from which we construct all vertex positions
+        glm::ivec3 m_startPos; // A corner of the chunk from which we construct all vertex positions
         std::array<BlockType, ChunkData::BLOCKS> m_blocks;
         std::array<Chunk*, 6> m_neighbors;
         GLuint m_vbo;

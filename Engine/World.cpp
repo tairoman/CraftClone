@@ -1,9 +1,20 @@
 
 
 #include <GL/glew.h>
+#include <glm/ext/vector_int3.hpp>
+#include <glm/gtx/hash.hpp>
 
 #include "Chunk.h"
 #include "World.h"
+
+#include <iostream>
+
+namespace {
+    decltype(auto) ivec3ToVec3(const glm::ivec3& ivec)
+    {
+        return glm::vec3{ ivec.x, ivec.y, ivec.z };
+    }
+}
 
 
 namespace Engine
@@ -12,8 +23,7 @@ namespace Engine
     static glm::vec3 convertViewDistance(glm::ivec3 viewDistanceInChunks)
     {
         // Converts view distance in the form of number of chunks in every direction to actual world length
-        return glm::vec3
-        {
+        return {
             viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
             viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
             viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
@@ -33,23 +43,53 @@ namespace Engine
             {
                 for (auto k = 0; k < viewDistanceInChunks.z * 2; k++)
                 {
-                    if (k > 0) {
-                        lastZ = chunks[chunks.size() - 1].get();
-                    }
-                    if (j > 0) {
-                        lastY = chunks[chunks.size() - viewDistanceInChunks.z * 2].get();
-                    }
-                    if (i > 0) {
-                        lastX = chunks[chunks.size() - viewDistanceInChunks.z * 2 * viewDistanceInChunks.y * 2].get();
-                    }
-
-                    auto worldSize = convertViewDistance(glm::ivec3{
+                    
+                    auto worldPos = convertViewDistance({
                         i - viewDistanceInChunks.x,
                         j - viewDistanceInChunks.y,
                         k - viewDistanceInChunks.z
                     });
-                    auto chunk = std::make_unique<Chunk>(worldSize, texture, BlockType::DIRT);
+                    auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::DIRT);
                     
+                    const auto centerPos = chunk->getCenterPos();
+
+                    if (k > 0) {
+                        auto pos = centerPos + glm::ivec3(0,0,-ChunkData::BLOCKS_Z);
+                        auto hash = std::hash<glm::ivec3>{}(pos);
+                        auto it = chunks.find(hash);
+                        lastZ = it == chunks.end() ? nullptr : (*it).second.get();
+                        // if (it == chunks.end()) {
+                        //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                        // else {
+                        //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                    }
+                    if (j > 0) {
+                        auto pos = centerPos + glm::ivec3(0,-ChunkData::BLOCKS_Y,0);
+                        auto hash = std::hash<glm::ivec3>{}(pos);
+                        auto it = chunks.find(hash);
+                        lastY = it == chunks.end() ? nullptr : (*it).second.get();
+                        // if (it == chunks.end()) {
+                        //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                        // else {
+                        //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                    }
+                    if (i > 0) {
+                        auto pos = centerPos + glm::ivec3(-ChunkData::BLOCKS_X,0,0);
+                        auto hash = std::hash<glm::ivec3>{}(pos);
+                        auto it = chunks.find(hash);
+                        lastX = it == chunks.end() ? nullptr : (*it).second.get();
+                        // if (it == chunks.end()) {
+                        //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                        // else {
+                        //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
+                        // }
+                    }
+
                     chunk->setNeighbor(lastX, Direction::NegX);
                     if (lastX) {
                         lastX->setNeighbor(chunk.get(), Direction::PlusX);
@@ -63,7 +103,10 @@ namespace Engine
                         lastZ->setNeighbor(chunk.get(), Direction::PlusZ);
                     }
 
-                    chunks.push_back(std::move(chunk));
+                    const auto hashed = std::hash<glm::ivec3>{}(centerPos);
+                    //std::cout << "Added chunk with hash " << hashed << "\n\t Pos: (" << centerPos.x << "," << centerPos.y << ", " << centerPos.z << ")\n";
+
+                    chunks[hashed] = std::move(chunk);
                 }
                 lastZ = nullptr;
                 
@@ -85,7 +128,7 @@ namespace Engine
 
     void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
     {
-        for (const auto& chunk : chunks)
+        for (const auto& [_, chunk] : chunks)
         {
             if (isWithinViewDistance(chunk.get(), playerPos))
             {
@@ -96,14 +139,13 @@ namespace Engine
             {
                 // Don't render and tag for replacement
             }
-            
         }
     }
 
     bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
     {
         // Get chunk position relative to player
-        const auto chunkPos = chunk->getCenterPos() - playerPos;
+        const auto chunkPos = ivec3ToVec3(chunk->getCenterPos()) - playerPos;
         return (
             std::abs(viewDistance.x - chunkPos.x) > 0 &&
             std::abs(viewDistance.y - chunkPos.y) > 0 &&

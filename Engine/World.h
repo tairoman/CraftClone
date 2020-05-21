@@ -4,6 +4,8 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
+
 #include "Chunk.h"
 #include "Shader.h"
 
@@ -22,7 +24,7 @@ namespace Engine
         void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
         bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
 
-        std::vector<std::unique_ptr<Chunk>> chunks;
+        std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
         glm::vec3 viewDistance;
     };
 }
