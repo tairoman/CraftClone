@@ -1,3 +1,4 @@
+#include <SDL2/SDL_video.h>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -44,6 +45,7 @@ namespace Engine
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     }
 }
 
@@ -129,6 +131,8 @@ int main()
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 16);
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
