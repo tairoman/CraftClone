@@ -21,12 +21,12 @@ namespace ChunkData
 namespace Engine
 {
 
-    enum class BlockType : uint8_t
+    enum class BlockType
     {
-        AIR,
-        GRASS,
-        DIRT,
-        STONE,
+        AIR = 8,
+        GRASS = 9,
+        DIRT = 10,
+        STONE = 11,
     };
 
     enum class Direction
@@ -55,7 +55,7 @@ namespace Engine
         void set(int x, int y, int z, BlockType type);
 
         const glm::mat4& getModelWorldMatrix() const {
-            return modelWorldMatrix;
+            return m_modelWorldMatrix;
         }
 
         void setNeighbor(Chunk* chunk, Direction dir);
@@ -70,15 +70,15 @@ namespace Engine
         void updateVbo();
         bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
 
-        glm::mat4 modelWorldMatrix;
-        glm::vec3 startPos; // A corner of the chunk from which we construct all vertex positions
-        std::array<BlockType, ChunkData::BLOCKS> blocks;
-        std::array<Chunk*, 6> neighbors;
-        GLuint vbo;
-        GLuint vao;
-        GLuint texture;
-        bool changed = true;
-        std::size_t vertices = 0;
+        glm::mat4 m_modelWorldMatrix;
+        glm::vec3 m_startPos; // A corner of the chunk from which we construct all vertex positions
+        std::array<BlockType, ChunkData::BLOCKS> m_blocks;
+        std::array<Chunk*, 6> m_neighbors;
+        GLuint m_vbo;
+        GLuint m_vao;
+        GLuint m_texture;
+        bool m_changed = true;
+        std::size_t m_vertices = 0;
 
     };
 }
