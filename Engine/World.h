@@ -11,22 +11,24 @@
 
 namespace Engine
 {
-    class World
-    {
-    public:
-        World(glm::ivec3 viewDistanceInChunks, GLuint texture);
-        ~World() = default;
 
-        void render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
-        //Engine::BlockType get(int x, int y, int z) const;
+class World
+{
+public:
+    World(glm::ivec3 viewDistanceInChunks, GLuint texture);
+    ~World() = default;
 
-    private:
-        void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
-        bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
+    void render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
+    //Engine::BlockType get(int x, int y, int z) const;
 
-        std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
-        glm::vec3 viewDistance;
-    };
+private:
+    void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
+    bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
+
+    std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
+    glm::vec3 viewDistance;
+};
+
 }
 
 
