@@ -18,7 +18,7 @@ constexpr auto numTypes = 4;
 constexpr auto numVertices = 6;
 
 constexpr auto texArraySize = numTypes * numVertices;
-const std::array<glm::vec2, texArraySize> texLookup{
+const std::array<glm::vec2, texArraySize> texLookup {
 
         /* 0. GRASS SIDE */
         glm::vec2{ 0.635f, 0.9375f },
@@ -74,7 +74,7 @@ std::size_t atlasLookup(BlockType type, BlockSide side)
         case Engine::BlockType::STONE: return 3*6;
     }
     return 0;
-};
+}
 
 Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
     : m_modelWorldMatrix(glm::translate(glm::mat4{1.0f}, pos))
@@ -88,8 +88,8 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, textureCoord));
-    glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, textureCoord)));
+    glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
@@ -106,13 +106,13 @@ Chunk::~Chunk()
 
 BlockType Chunk::get(int x, int y, int z) const
 {
-    return m_blocks[x + ChunkData::BLOCKS_X * (y + ChunkData::BLOCKS_Y * z)];
+    return m_blocks.at(x + ChunkData::BLOCKS_X * (y + ChunkData::BLOCKS_Y * z));
 }
 
 void Chunk::set(int x, int y, int z, BlockType type)
 {
     m_changed = true;
-    m_blocks[x + ChunkData::BLOCKS_X * (y + ChunkData::BLOCKS_Y * z)] = type;
+    m_blocks.at(x + ChunkData::BLOCKS_X * (y + ChunkData::BLOCKS_Y * z)) = type;
 }
 
 void Chunk::render()
@@ -131,12 +131,12 @@ void Chunk::render()
 
 void Chunk::setNeighbor(Chunk* chunk, Direction dir)
 {
-    m_neighbors[(std::size_t)dir] = chunk;
+    m_neighbors.at(std::size_t(dir)) = chunk;
 }
 
 Chunk* Chunk::neighbor(Direction dir)
 {
-    return m_neighbors[std::size_t(dir)];
+    return m_neighbors.at(std::size_t(dir));
 }
 
 glm::ivec3 Chunk::getCenterPos() const

@@ -10,7 +10,11 @@ Checks: |
     portability-*,
     readability-*,
     -readability-magic-numbers,
+    -readability-qualified-auto,
+    -readability-implicit-bool-conversion,
+    -cppcotireguidelines-pro-type-reinterpret-cast,
     -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-pro-type-union-access,
     -readability-uppercase-literal-suffix,
     -modernize-use-trailing-return-type,
-    -cppcoreguidelines-pro-type-union-access
+    -cppcoreguidelines-pro-type-union-accessti

@@ -51,10 +51,10 @@ namespace Engine
         Chunk(glm::vec3 pos, GLuint texture, BlockType type = BlockType::AIR);
         ~Chunk();
 
-        BlockType get(int x, int y, int z) const;
+        [[nodiscard]] BlockType get(int x, int y, int z) const;
         void set(int x, int y, int z, BlockType type);
 
-        const glm::mat4& getModelWorldMatrix() const {
+        [[nodiscard]] const glm::mat4& getModelWorldMatrix() const {
             return m_modelWorldMatrix;
         }
 
@@ -63,12 +63,12 @@ namespace Engine
 
         void render();
 
-        glm::ivec3 getCenterPos() const;
+        [[nodiscard]] glm::ivec3 getCenterPos() const;
 
     private:
 
         void updateVbo();
-        bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
+        [[nodiscard]] bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
 
         glm::mat4 m_modelWorldMatrix;
         glm::ivec3 m_startPos; // A corner of the chunk from which we construct all vertex positions
