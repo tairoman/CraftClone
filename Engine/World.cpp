@@ -10,24 +10,26 @@
 #include <iostream>
 
 namespace {
-    decltype(auto) ivec3ToVec3(const glm::ivec3& ivec)
-    {
-        return glm::vec3{ ivec.x, ivec.y, ivec.z };
-    }
+
+auto ivec3ToVec3(const glm::ivec3& ivec)
+{
+    return glm::vec3{ ivec.x, ivec.y, ivec.z };
 }
 
-namespace Engine
-{
-
-static glm::vec3 convertViewDistance(glm::ivec3 viewDistanceInChunks)
+auto convertViewDistance(glm::ivec3 viewDistanceInChunks)
 {
     // Converts view distance in the form of number of chunks in every direction to actual world length
-    return {
+    return glm::vec3 {
         viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
         viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
         viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
     };
 }
+
+} // anon namespace
+
+namespace Engine
+{
 
 World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
     : viewDistance(convertViewDistance(viewDistanceInChunks))
@@ -42,7 +44,7 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
         {
             for (auto k = 0; k < viewDistanceInChunks.z * 2; k++)
             {
-                auto worldPos = convertViewDistance({
+                const auto worldPos = convertViewDistance({
                     i - viewDistanceInChunks.x,
                     j - viewDistanceInChunks.y,
                     k - viewDistanceInChunks.z
@@ -56,36 +58,18 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
                     auto hash = std::hash<glm::ivec3>{}(pos);
                     auto it = chunks.find(hash);
                     lastZ = it == chunks.end() ? nullptr : (*it).second.get();
-                    // if (it == chunks.end()) {
-                    //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
-                    // else {
-                    //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
                 }
                 if (j > 0) {
                     auto pos = centerPos + glm::ivec3(0,-ChunkData::BLOCKS_Y,0);
                     auto hash = std::hash<glm::ivec3>{}(pos);
                     auto it = chunks.find(hash);
                     lastY = it == chunks.end() ? nullptr : (*it).second.get();
-                    // if (it == chunks.end()) {
-                    //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
-                    // else {
-                    //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
                 }
                 if (i > 0) {
-                    auto pos = centerPos + glm::ivec3(-ChunkData::BLOCKS_X,0,0);
-                    auto hash = std::hash<glm::ivec3>{}(pos);
+                    const auto pos = centerPos + glm::ivec3(-ChunkData::BLOCKS_X,0,0);
+                    const auto hash = std::hash<glm::ivec3>{}(pos);
                     auto it = chunks.find(hash);
                     lastX = it == chunks.end() ? nullptr : (*it).second.get();
-                    // if (it == chunks.end()) {
-                    //     std::cout << "No entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
-                    // else {
-                    //     std::cout << "Found entry with hash: " << hash << "\n\t Pos: (" << pos.x << "," << pos.y << ", " << pos.z << ")\n";
-                    // }
                 }
 
                 chunk->setNeighbor(lastX, Direction::NegX);
@@ -102,8 +86,7 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
                 }
 
                 const auto hashed = std::hash<glm::ivec3>{}(centerPos);
-                //std::cout << "Added chunk with hash " << hashed << "\n\t Pos: (" << centerPos.x << "," << centerPos.y << ", " << centerPos.z << ")\n";
-
+                
                 chunks[hashed] = std::move(chunk);
             }
             lastZ = nullptr;

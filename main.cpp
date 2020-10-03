@@ -22,11 +22,33 @@
 #include "Engine/World.h"
 #include "Engine/Logger.h"
 
+struct Config
+{
+    bool wireframe = false;
+    bool vsync = false;
+};
+
+struct Stats {
+    std::size_t currentFPS = 0;
+};
+
+namespace
+{
+
 namespace ScreenData
 {
     constexpr auto width = 1920;
     constexpr auto height = 1080;
 }
+
+//TODO: Remove globals
+Stats stats;
+Config config;
+Engine::Camera* playerCamera;
+
+bool showingConfig = false;
+
+} // anon namespace
 
 namespace Engine
 {
@@ -65,22 +87,6 @@ void initialize()
 
 } // namespace Engine
 
-struct Config
-{
-    bool wireframe = false;
-    bool vsync = false;
-};
-
-struct Stats {
-    std::size_t currentFPS = 0;
-};
-
-static Stats stats;
-static Config config;
-static Engine::Camera* playerCamera;
-
-static bool showingConfig = false;
-
 void renderImGui()
 {
     ImGui_ImplSdlGL3_NewFrame(Engine::WindowManager::instance().getWindow());
@@ -105,9 +111,9 @@ void renderImGui()
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
     ImGui::Text("%s", fpsText.c_str());
 
-    auto posXText = std::string("x:") + std::to_string(playerCamera->getPosition().x);
-    auto posYText = std::string("y:") + std::to_string(playerCamera->getPosition().y);
-    auto posZText = std::string("z:") + std::to_string(playerCamera->getPosition().z);
+    const auto posXText = std::string("x:") + std::to_string(playerCamera->getPosition().x);
+    const auto posYText = std::string("y:") + std::to_string(playerCamera->getPosition().y);
+    const auto posZText = std::string("z:") + std::to_string(playerCamera->getPosition().z);
     ImGui::Text("%s", posXText.c_str());
     ImGui::Text("%s", posYText.c_str());
     ImGui::Text("%s", posZText.c_str());
