@@ -87,14 +87,14 @@ void renderImGui()
     ImGui::SetNextWindowSize({ScreenData::width * 0.15, 200});
     ImGui::Begin("Info");
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
-    ImGui::Text(fpsText.c_str());
+    ImGui::Text("%s", fpsText.c_str());
 
     auto posXText = std::string("x:") + std::to_string(playerCamera->getPosition().x);
     auto posYText = std::string("y:") + std::to_string(playerCamera->getPosition().y);
     auto posZText = std::string("z:") + std::to_string(playerCamera->getPosition().z);
-    ImGui::Text(posXText.c_str());
-    ImGui::Text(posYText.c_str());
-    ImGui::Text(posZText.c_str());
+    ImGui::Text("%s", posXText.c_str());
+    ImGui::Text("%s", posYText.c_str());
+    ImGui::Text("%s", posZText.c_str());
 
     ImGui::End();
 
@@ -157,7 +157,6 @@ int main()
     auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();
-    double deltaTime = 0;
     double avgDeltaTime = 1;
 
     while (running) {
@@ -165,7 +164,7 @@ int main()
         const auto last = now;
         now = SDL_GetTicks();
 
-        deltaTime = now - last;
+        const auto deltaTime = now - last;
 
         // Moving average of time spent in game loop
         const auto decayFactor = 0.95;
@@ -220,16 +219,16 @@ int main()
 
         if (!showingConfig) {
             if (keyState[SDL_SCANCODE_W]) {
-                camera.moveForward(deltaTime / 100);
+                camera.moveForward(deltaTime / 100.0f);
             }
             if (keyState[SDL_SCANCODE_S]) {
-                camera.moveBack(deltaTime / 100);
+                camera.moveBack(deltaTime / 100.0f);
             }
             if (keyState[SDL_SCANCODE_A]) {
-                camera.moveLeft(deltaTime / 100);
+                camera.moveLeft(deltaTime / 100.0f);
             }
             if (keyState[SDL_SCANCODE_D]) {
-                camera.moveRight(deltaTime / 100);
+                camera.moveRight(deltaTime / 100.0f);
             }
             if (keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(10);

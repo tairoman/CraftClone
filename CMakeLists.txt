@@ -15,6 +15,23 @@ file(GLOB imgui
         "imgui_impl_sdl_gl3.cpp"
         )
 
+set(RESOURCE_FILES
+        shaders/shader.vert
+        shaders/shader.frag
+        assets/tiles.png
+)
+
+message("Copying resource files")
+foreach(X ${RESOURCE_FILES})
+        set(ABS_FILE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${X})
+        if (EXISTS ${ABS_FILE_PATH})
+                message("Copying file ${ABS_FILE_PATH}")
+                configure_file(${X} ${X} COPYONLY)
+        else()
+                message(SEND_ERROR "File not found: ${ABS_FILE_PATH}")
+        endif()
+endforeach()
+
 set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h Engine/World.cpp Engine/World.h)
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})
 
