@@ -20,6 +20,7 @@
 #include "Engine/Chunk.h"
 #include "Engine/Camera.h"
 #include "Engine/World.h"
+#include "Engine/Logger.h"
 
 namespace ScreenData
 {
@@ -29,25 +30,40 @@ namespace ScreenData
 
 namespace Engine
 {
-    void initialize()
-    {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cerr << "Couldn't initialize SDL: " << SDL_GetError() << ".\n";
-            exit(0);
-        }
 
-        SDL_GL_LoadLibrary(nullptr);
-
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+void initialize()
+{
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "Couldn't initialize SDL: " << SDL_GetError() << ".\n";
+        exit(0);
     }
+
+    SDL_GL_LoadLibrary(nullptr);
+
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
+    Engine::WindowManager::instance().setSize(ScreenData::width, ScreenData::height);
+
+    glewExperimental = GL_TRUE;
+    const auto init_res = glewInit();
+    if(init_res != GLEW_OK)
+    {
+        std::cout << glewGetErrorString(glewInit()) << std::endl;
+    }
+
+#if defined (CRAFTBONE_ENABLE_DEBUG_OPENGL)
+    Logger::registerGlLogger();
+#endif
 }
+
+} // namespace Engine
 
 struct Config
 {
@@ -105,7 +121,6 @@ int main()
 {
     Engine::initialize();
 
-    Engine::WindowManager::instance().setSize(ScreenData::width, ScreenData::height);
     SDL_Window* window = Engine::WindowManager::instance().getWindow();
 
     ImGui_ImplSdlGL3_Init(window);

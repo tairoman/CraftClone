@@ -32,10 +32,27 @@ foreach(X ${RESOURCE_FILES})
         endif()
 endforeach()
 
-set(SOURCE_FILES main.cpp Engine/WindowManager.cpp Engine/WindowManager.h Engine/Shader.cpp Engine/Shader.h Engine/Camera.cpp Engine/Camera.h Engine/Chunk.cpp Engine/Chunk.h Engine/World.cpp Engine/World.h)
+add_definitions(-DCRAFTBONE_ENABLE_DEBUG_OPENGL)
+
+set(SOURCE_FILES
+        main.cpp
+        Engine/WindowManager.cpp
+        Engine/WindowManager.h
+        Engine/Shader.cpp
+        Engine/Shader.h
+        Engine/Camera.cpp
+        Engine/Camera.h
+        Engine/Chunk.cpp
+        Engine/Chunk.h
+        Engine/World.cpp
+        Engine/World.h
+        Engine/Logger.cpp
+        Engine/Logger.h
+)
+
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})
 
-source_group("Headers" Engine/WindowManager.h Engine/Shader.h Engine/Camera.h Engine/Chunk.h Engine/World.h)
-source_group("Source" Engine/WindowManager.cpp Engine/Shader.cpp Engine/Camera.cpp Engine/Chunk.cpp Engine/World.cpp)
+source_group("Headers" Engine/WindowManager.h Engine/Shader.h Engine/Camera.h Engine/Chunk.h Engine/World.h Engine/Logger.h)
+source_group("Source" Engine/WindowManager.cpp Engine/Shader.cpp Engine/Camera.cpp Engine/Chunk.cpp Engine/World.cpp Engine/Logger.cpp)
 
 target_link_libraries(CraftBone SDL2 GL GLEW)

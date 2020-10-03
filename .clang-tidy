@@ -6,9 +6,11 @@ Checks: |
     -clang-analyzer-*,
     misc-*,
     modernize-*,
+    -modernize-use-trailing-return-type,
     performance-*,
     portability-*,
     readability-*,
+    -readability-uppercase-literal-suffix,
     -readability-magic-numbers,
     -readability-qualified-auto,
     -readability-implicit-bool-conversion,
@@ -16,6 +18,5 @@ Checks: |
     -cppcoreguidelines-pro-bounds-pointer-arithmetic,
     -cppcoreguidelines-avoid-magic-numbers,
     -cppcoreguidelines-pro-type-union-access,
-    -readability-uppercase-literal-suffix,
-    -modernize-use-trailing-return-type,
-    -cppcoreguidelines-pro-type-union-accessti
+    -cppcoreguidelines-pro-type-vararg,
+    -readability-uppercase-literal-suffix
