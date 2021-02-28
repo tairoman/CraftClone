@@ -16,6 +16,7 @@ compile_commands.json
 # IDE
 .idea/
 .clangd/
+.cache/
 
 # Prerequisites
 *.d

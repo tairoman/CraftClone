@@ -26,6 +26,7 @@ struct Config
 {
     bool wireframe = false;
     bool vsync = false;
+    bool fullscreen = false;
 };
 
 struct Stats {
@@ -35,12 +36,6 @@ struct Stats {
 namespace
 {
 
-namespace ScreenData
-{
-    constexpr auto width = 1920;
-    constexpr auto height = 1080;
-}
-
 //TODO: Remove globals
 Stats stats;
 Config config;
@@ -48,48 +43,14 @@ Engine::Camera* playerCamera;
 
 bool showingConfig = false;
 
+auto& s_windowManager = Engine::WindowManager::instance();
+
 } // anon namespace
-
-namespace Engine
-{
-
-void initialize()
-{
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cerr << "Couldn't initialize SDL: " << SDL_GetError() << ".\n";
-        exit(0);
-    }
-
-    SDL_GL_LoadLibrary(nullptr);
-
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
-    Engine::WindowManager::instance().setSize(ScreenData::width, ScreenData::height);
-
-    glewExperimental = GL_TRUE;
-    const auto init_res = glewInit();
-    if(init_res != GLEW_OK)
-    {
-        std::cout << glewGetErrorString(glewInit()) << std::endl;
-    }
-
-#if defined (CRAFTBONE_ENABLE_DEBUG_OPENGL)
-    Logger::registerGlLogger();
-#endif
-}
-
-} // namespace Engine
 
 void renderImGui()
 {
-    ImGui_ImplSdlGL3_NewFrame(Engine::WindowManager::instance().getWindow());
+    auto& window = Engine::WindowManager::instance();
+    ImGui_ImplSdlGL3_NewFrame(window.getWindow());
 
     if (showingConfig) {
         ImGui::Begin("Config");
@@ -102,11 +63,17 @@ void renderImGui()
             Engine::WindowManager::instance().setVSync(config.vsync);
         }
 
+        if (ImGui::Checkbox("Fullscreen", &config.fullscreen)) {
+            Engine::WindowManager::instance().setWindowMode(
+                config.fullscreen ? Engine::WindowMode::Fullscreen : Engine::WindowMode::Windowed
+            );
+        }
+
         ImGui::End();
     }
 
-    ImGui::SetNextWindowPos({ScreenData::width * 0.85, ScreenData::height * 0.05});
-    ImGui::SetNextWindowSize({ScreenData::width * 0.15, 200});
+    ImGui::SetNextWindowPos({float(window.width()) * 0.85f, float(window.height()) * 0.05f});
+    ImGui::SetNextWindowSize({float(window.width()) * 0.15f, 300});
     ImGui::Begin("Info");
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
     ImGui::Text("%s", fpsText.c_str());
@@ -125,7 +92,10 @@ void renderImGui()
 
 int main()
 {
-    Engine::initialize();
+
+#if defined (CRAFTBONE_ENABLE_DEBUG_OPENGL)
+    Logger::registerGlLogger();
+#endif
 
     SDL_Window* window = Engine::WindowManager::instance().getWindow();
 
@@ -161,20 +131,15 @@ int main()
 
     SDL_Event event{};
 
-    int w = 0; 
-    int h = 0;
-    SDL_GetWindowSize(window, &w, &h);
-    glViewport(0, 0, w, h); // Set viewport
-
     const Engine::Shader simpleShader("shaders/shader.vert", "shaders/shader.frag");
 
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
-    Engine::Camera camera(45.0f, float(w) / float(h), 0.01f, 500.0f);
+    Engine::Camera camera(45.0f, float(s_windowManager.width()) / float(s_windowManager.height()), 0.01f, 500.0f);
     camera.setPosition(glm::vec3(0.0f, 300.0f, 0.0f));
     playerCamera = &camera;
 
-    glm::ivec3 viewDistanceInChunks{5, 2, 5};
+    glm::ivec3 viewDistanceInChunks{10, 1, 10};
     auto world = Engine::World{viewDistanceInChunks, texture};
 
     auto now = SDL_GetTicks();

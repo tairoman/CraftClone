@@ -9,6 +9,13 @@
 namespace Engine
 {
 
+enum class WindowMode
+{
+    Fullscreen,
+    WindowedFullscreen,
+    Windowed
+};
+
 class WindowManager
 {
 
@@ -21,10 +28,13 @@ public:
     }
 
     void setSize(int w, int h);
-    void setFullscreen();
+    void setWindowMode(WindowMode mode);
     void setVSync(bool setEnabled);
 
     [[nodiscard]] SDL_Window* getWindow() const;
+    
+    [[nodiscard]] int width() const;
+    [[nodiscard]] int height() const;
 
 private:
     
@@ -32,8 +42,11 @@ private:
 
     int m_width = 0;
     int m_height = 0;
+    
+    WindowMode m_windowMode = WindowMode::Windowed;
+    SDL_DisplayMode m_currentDisplayMode;
 
-    std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window;
+    std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window = {nullptr, SDL_DestroyWindow};
 
     SDL_GLContext m_context;
 

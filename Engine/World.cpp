@@ -7,6 +7,8 @@
 #include "Chunk.h"
 #include "World.h"
 
+#include "../lib/PerlinNoise.hpp"
+
 #include <iostream>
 
 namespace {
@@ -34,22 +36,32 @@ namespace Engine
 World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
     : viewDistance(convertViewDistance(viewDistanceInChunks))
 {
+    siv::BasicPerlinNoise<float> perlinNoise;
     chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
     Chunk* lastX = nullptr;
     Chunk* lastY = nullptr;
     Chunk* lastZ = nullptr;
-    for (auto i = 0; i < viewDistanceInChunks.x * 2; i++)
-    {
-        for (auto j = 0; j < viewDistanceInChunks.y * 2; j++)
-        {
-            for (auto k = 0; k < viewDistanceInChunks.z * 2; k++)
-            {
+    for (auto i = 0; i < viewDistanceInChunks.x * 2; i++) {
+        for (auto j = 0; j < viewDistanceInChunks.y; j++) {
+            for (auto k = 0; k < viewDistanceInChunks.z * 2; k++) {
                 const auto worldPos = convertViewDistance({
                     i - viewDistanceInChunks.x,
                     j - viewDistanceInChunks.y,
                     k - viewDistanceInChunks.z
                 });
                 auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::DIRT);
+                for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
+                    for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
+                        const auto fx = 64;
+                        const auto fz = 64;
+                        auto value = int(std::floor(std::pow(perlinNoise.accumulatedOctaveNoise2D_0_1((worldPos.x + a) / fx, (worldPos.z + b) / fz, 4), 7) * ChunkData::BLOCKS_Y));
+                        //std::cout << "value: " << value << "\n";
+                        while (value > 0) {
+                            chunk->set(a, ChunkData::BLOCKS_Y - value, b, BlockType::AIR);
+                            value--;
+                        }
+                    }
+                }
                 
                 const auto centerPos = chunk->getCenterPos();
 

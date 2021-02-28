@@ -48,6 +48,7 @@ set(SOURCE_FILES
         Engine/World.h
         Engine/Logger.cpp
         Engine/Logger.h
+        lib/PerlinNoise.hpp
 )
 
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})
