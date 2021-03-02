@@ -21,17 +21,21 @@ public:
     ~World() = default;
 
     void render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
-    //Engine::BlockType get(int x, int y, int z) const;
+    void set(int x, int y, int z, BlockType type);
+
+    Chunk* addChunkAt(const glm::ivec3& pos, GLuint texture);
 
 private:
     void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
+    
     Chunk* chunkAt(const glm::ivec3& pos) const;
-    void addChunkAt(const glm::ivec3& pos, GLuint texture);
 
     std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
     glm::vec3 viewDistance;
     siv::BasicPerlinNoise<float> m_perlinNoise;
+
+    GLuint m_texture;
 };
 
 }
