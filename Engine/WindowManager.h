@@ -31,7 +31,7 @@ public:
     void setWindowMode(WindowMode mode);
     void setVSync(bool setEnabled);
 
-    [[nodiscard]] SDL_Window* getWindow() const;
+    [[nodiscard]] SDL_Window* sdlWindow() const;
     
     [[nodiscard]] int width() const;
     [[nodiscard]] int height() const;

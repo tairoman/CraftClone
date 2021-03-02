@@ -124,7 +124,7 @@ void WindowManager::setWindowMode(WindowMode mode)
     }
 }
 
-SDL_Window* WindowManager::getWindow() const
+SDL_Window* WindowManager::sdlWindow() const
 {
     return m_window.get();
 }

@@ -63,6 +63,7 @@ namespace Engine
 
         void render();
 
+        [[nodiscard]] glm::ivec3 pos() const;
         [[nodiscard]] glm::ivec3 getCenterPos() const;
 
     private:

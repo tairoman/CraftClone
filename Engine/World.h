@@ -9,6 +9,8 @@
 #include "Chunk.h"
 #include "Shader.h"
 
+#include "../lib/PerlinNoise.hpp"
+
 namespace Engine
 {
 
@@ -24,9 +26,12 @@ public:
 private:
     void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
+    Chunk* chunkAt(const glm::ivec3& pos) const;
+    void addChunkAt(const glm::ivec3& pos, GLuint texture);
 
     std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
     glm::vec3 viewDistance;
+    siv::BasicPerlinNoise<float> m_perlinNoise;
 };
 
 }

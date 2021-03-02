@@ -141,6 +141,11 @@ Chunk* Chunk::neighbor(Direction dir)
     return m_neighbors.at(std::size_t(dir));
 }
 
+glm::ivec3 Chunk::pos() const
+{
+    return m_startPos;
+}
+
 glm::ivec3 Chunk::getCenterPos() const
 {
     return {

@@ -49,8 +49,7 @@ auto& s_windowManager = Engine::WindowManager::instance();
 
 void renderImGui()
 {
-    auto& window = Engine::WindowManager::instance();
-    ImGui_ImplSdlGL3_NewFrame(window.getWindow());
+    ImGui_ImplSdlGL3_NewFrame(s_windowManager.sdlWindow());
 
     if (showingConfig) {
         ImGui::Begin("Config");
@@ -72,8 +71,8 @@ void renderImGui()
         ImGui::End();
     }
 
-    ImGui::SetNextWindowPos({float(window.width()) * 0.85f, float(window.height()) * 0.05f});
-    ImGui::SetNextWindowSize({float(window.width()) * 0.15f, 300});
+    ImGui::SetNextWindowPos({float(s_windowManager.width()) * 0.85f, float(s_windowManager.height()) * 0.05f});
+    ImGui::SetNextWindowSize({float(s_windowManager.width()) * 0.15f, 300});
     ImGui::Begin("Info");
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
     ImGui::Text("%s", fpsText.c_str());
@@ -97,7 +96,7 @@ int main()
     Logger::registerGlLogger();
 #endif
 
-    SDL_Window* window = Engine::WindowManager::instance().getWindow();
+    SDL_Window* window = Engine::WindowManager::instance().sdlWindow();
 
     ImGui_ImplSdlGL3_Init(window);
 
