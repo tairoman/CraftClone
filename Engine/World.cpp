@@ -12,18 +12,27 @@
 namespace
 {
 
-auto ivec3ToVec3(const glm::ivec3& ivec)
+glm::vec3 ivec3ToVec3(const glm::ivec3& ivec)
 {
-    return glm::vec3{ ivec.x, ivec.y, ivec.z };
+    return { ivec.x, ivec.y, ivec.z };
 }
 
-auto convertViewDistance(glm::ivec3 viewDistanceInChunks)
+glm::ivec3 chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
 {
     // Converts view distance in the form of number of chunks in every direction to actual world length
-    return glm::ivec3 {
+    return {
         viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
         viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
         viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
+    };
+}
+
+glm::ivec3 posToChunkIndex(glm::ivec3 pos)
+{
+    return {
+        int(std::floor(pos.x / ChunkData::BLOCKS_X)),
+        int(std::floor(pos.y / ChunkData::BLOCKS_Y)),
+        int(std::floor(pos.z / ChunkData::BLOCKS_Z))
     };
 }
 
@@ -33,18 +42,18 @@ namespace Engine
 {
 
 World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
-    : viewDistance(convertViewDistance(viewDistanceInChunks))
+    : viewDistance(chunkIndexToPos(viewDistanceInChunks))
     , m_texture(texture)
 {
     chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
     for (auto i = 0; i < viewDistanceInChunks.x * 2; i++) {
         for (auto j = 0; j < viewDistanceInChunks.y; j++) {
             for (auto k = 0; k < viewDistanceInChunks.z * 2; k++) {
-                const auto worldPos = convertViewDistance({
+                const auto worldPos = glm::ivec3 {
                     i - viewDistanceInChunks.x,
                     j - viewDistanceInChunks.y,
                     k - viewDistanceInChunks.z
-                });
+                };
                 addChunkAt(worldPos, texture);
             }   
         }
@@ -54,11 +63,11 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
 void World::set(int x, int y, int z, BlockType type)
 {
     // Get the lower-left corner (start) position of the chunk
-    const auto chunkPos = glm::ivec3 {
-        int(std::floor(x / ChunkData::BLOCKS_X) * ChunkData::BLOCKS_X),
-        int(std::floor(y / ChunkData::BLOCKS_Y) * ChunkData::BLOCKS_Y),
-        int(std::floor(z / ChunkData::BLOCKS_Z) * ChunkData::BLOCKS_Z)
-    };
+    const auto chunkPos = posToChunkIndex({
+        int(std::floor(x / ChunkData::BLOCKS_X)),
+        int(std::floor(y / ChunkData::BLOCKS_Y)),
+        int(std::floor(z / ChunkData::BLOCKS_Z))
+    });
     
     auto chunk = chunkAt(chunkPos);
     if (!chunk) {
@@ -109,23 +118,24 @@ Chunk* World::chunkAt(const glm::ivec3& pos) const
 
 Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
 {
-    auto chunk = std::make_unique<Chunk>(pos, texture, BlockType::DIRT);
+    const auto worldPos = chunkIndexToPos(pos);
+    auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::DIRT);
     for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
             const auto fx = 256.0f;
             const auto fz = 256.0f;
-            auto value = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(pos.x + a) / fx, float(pos.z + b) / fz, 5), 2) * ChunkData::BLOCKS_Y));
+            auto value = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / fx, float(worldPos.z + b) / fz, 5), 2) * ChunkData::BLOCKS_Y));
             for (auto i = ChunkData::BLOCKS_Y-1; i >= value; i--) {
                 chunk->set(a, i, b, BlockType::AIR);
             }
         }
     }
 
-    auto lastZ = chunkAt(pos + glm::ivec3(0,0,-ChunkData::BLOCKS_Z));
+    auto lastZ = chunkAt(pos + glm::ivec3(0,0,-1));
 
-    auto lastY = chunkAt(pos + glm::ivec3(0,-ChunkData::BLOCKS_Y,0));
+    auto lastY = chunkAt(pos + glm::ivec3(0,-1,0));
 
-    auto lastX = chunkAt(pos + glm::ivec3(-ChunkData::BLOCKS_X,0,0));
+    auto lastX = chunkAt(pos + glm::ivec3(-1,0,0));
 
     chunk->setNeighbor(lastX, Direction::NegX);
     if (lastX) {

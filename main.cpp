@@ -89,15 +89,6 @@ void renderImGui()
     ImGui::Render();
 }
 
-glm::ivec3 chunkIndexOfPos(glm::ivec3 pos)
-{
-    return {
-        int(std::floor(pos.x / ChunkData::BLOCKS_X)),
-        int(std::floor(pos.y / ChunkData::BLOCKS_Y)),
-        int(std::floor(pos.z / ChunkData::BLOCKS_Z))
-    };
-}
-
 int main()
 {
 
