@@ -17,25 +17,6 @@ glm::vec3 ivec3ToVec3(const glm::ivec3& ivec)
     return { ivec.x, ivec.y, ivec.z };
 }
 
-glm::ivec3 chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
-{
-    // Converts view distance in the form of number of chunks in every direction to actual world length
-    return {
-        viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
-        viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
-        viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
-    };
-}
-
-glm::ivec3 posToChunkIndex(glm::ivec3 pos)
-{
-    return {
-        int(std::floor(pos.x / ChunkData::BLOCKS_X)),
-        int(std::floor(pos.y / ChunkData::BLOCKS_Y)),
-        int(std::floor(pos.z / ChunkData::BLOCKS_Z))
-    };
-}
-
 } // anon namespace
 
 namespace Engine
@@ -60,6 +41,25 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
     }
 }
 
+glm::ivec3 World::chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
+{
+    // Converts view distance in the form of number of chunks in every direction to actual world length
+    return {
+        viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
+        viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
+        viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
+    };
+}
+
+glm::ivec3 World::posToChunkIndex(glm::ivec3 pos)
+{
+    return {
+        int(std::floor(pos.x / ChunkData::BLOCKS_X)),
+        int(std::floor(pos.y / ChunkData::BLOCKS_Y)),
+        int(std::floor(pos.z / ChunkData::BLOCKS_Z))
+    };
+}
+
 void World::set(int x, int y, int z, BlockType type)
 {
     // Get the lower-left corner (start) position of the chunk
@@ -69,10 +69,7 @@ void World::set(int x, int y, int z, BlockType type)
         int(std::floor(z / ChunkData::BLOCKS_Z))
     });
     
-    auto chunk = chunkAt(chunkPos);
-    if (!chunk) {
-        chunk = addChunkAt(chunkPos, m_texture);
-    }
+    auto chunk = ensureChunkAtIndex(chunkPos);
 
     chunk->set(x % ChunkData::BLOCKS_X, y % ChunkData::BLOCKS_Y, z % ChunkData::BLOCKS_Z, type);
 }
@@ -116,9 +113,18 @@ Chunk* World::chunkAt(const glm::ivec3& pos) const
     return it == chunks.end() ? nullptr : (*it).second.get();
 }
 
-Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
+Chunk* World::ensureChunkAtIndex(const glm::ivec3& chunkIndex)
 {
-    const auto worldPos = chunkIndexToPos(pos);
+    auto chunk = chunkAt(chunkIndex);
+    if (!chunk) {
+        chunk = addChunkAt(chunkIndex, m_texture);
+    }
+    return chunk;
+}
+
+Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
+{
+    const auto worldPos = chunkIndexToPos(chunkIndex);
     auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::AIR);
     for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
@@ -126,7 +132,8 @@ Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
             const auto densityFreq = 64.0f;
             auto heightValue = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / heightFreq, float(worldPos.z + b) / heightFreq, 5), 2) * ChunkData::BLOCKS_Y));
             auto firstBlock = std::optional<int>();
-            for (auto c = heightValue; c >= 0; c--) {
+            auto startPos = heightValue > (worldPos.y + ChunkData::BLOCKS_Y) ? ChunkData::BLOCKS_Y - 1 : heightValue - worldPos.y;
+            for (auto c = startPos; c >= 0; c--) {
                 auto value =  0.8 * m_perlinNoise.accumulatedOctaveNoise3D_0_1(float(worldPos.x + a) / densityFreq, float(worldPos.y + c) / densityFreq, float(worldPos.z + b) / densityFreq, 3);
                 const auto addBlock = value < 0.7f;
                 if (!addBlock) {
@@ -146,11 +153,11 @@ Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
         }
     }
 
-    auto lastZ = chunkAt(pos + glm::ivec3(0,0,-1));
+    auto lastZ = chunkAt(chunkIndex + glm::ivec3(0,0,-1));
 
-    auto lastY = chunkAt(pos + glm::ivec3(0,-1,0));
+    auto lastY = chunkAt(chunkIndex + glm::ivec3(0,-1,0));
 
-    auto lastX = chunkAt(pos + glm::ivec3(-1,0,0));
+    auto lastX = chunkAt(chunkIndex + glm::ivec3(-1,0,0));
 
     chunk->setNeighbor(lastX, Direction::NegX);
     if (lastX) {
@@ -165,7 +172,7 @@ Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
         lastZ->setNeighbor(chunk.get(), Direction::PlusZ);
     }
 
-    const auto hashed = std::hash<glm::ivec3>{}(pos);
+    const auto hashed = std::hash<glm::ivec3>{}(chunkIndex);
 
     const auto observer = chunk.get();
     

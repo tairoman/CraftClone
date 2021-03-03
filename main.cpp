@@ -144,6 +144,8 @@ int main()
     auto now = SDL_GetTicks();
     double avgDeltaTime = 1;
 
+    auto currentChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
+
     while (running) {
 
         const auto last = now;
@@ -220,6 +222,18 @@ int main()
             }
             if (!keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(1);
+            }
+        }
+
+        auto newChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
+        if (currentChunkIndex != newChunkIndex) {
+            currentChunkIndex = newChunkIndex;
+            for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
+                for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
+                    for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
+                        world.ensureChunkAtIndex({newChunkIndex.x + x, newChunkIndex.y + y, newChunkIndex.z + z});
+                    }
+                }
             }
         }
     }
