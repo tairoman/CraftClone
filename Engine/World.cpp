@@ -119,14 +119,29 @@ Chunk* World::chunkAt(const glm::ivec3& pos) const
 Chunk* World::addChunkAt(const glm::ivec3& pos, GLuint texture)
 {
     const auto worldPos = chunkIndexToPos(pos);
-    auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::DIRT);
+    auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::AIR);
     for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
-            const auto fx = 256.0f;
-            const auto fz = 256.0f;
-            auto value = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / fx, float(worldPos.z + b) / fz, 5), 2) * ChunkData::BLOCKS_Y));
-            for (auto i = ChunkData::BLOCKS_Y-1; i >= value; i--) {
-                chunk->set(a, i, b, BlockType::AIR);
+            const auto heightFreq = 256.0f;
+            const auto densityFreq = 64.0f;
+            auto heightValue = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / heightFreq, float(worldPos.z + b) / heightFreq, 5), 2) * ChunkData::BLOCKS_Y));
+            auto firstBlock = std::optional<int>();
+            for (auto c = heightValue; c >= 0; c--) {
+                auto value =  0.8 * m_perlinNoise.accumulatedOctaveNoise3D_0_1(float(worldPos.x + a) / densityFreq, float(worldPos.y + c) / densityFreq, float(worldPos.z + b) / densityFreq, 3);
+                const auto addBlock = value < 0.7f;
+                if (!addBlock) {
+                    continue;
+                }
+
+                auto blockType = BlockType::STONE;
+                if (!firstBlock.has_value()) {
+                    firstBlock = c;
+                    blockType = BlockType::GRASS;
+                }
+                else if (c > (*firstBlock - 3)) {
+                    blockType = BlockType::DIRT;
+                }
+                chunk->set(a, c, b, blockType);
             }
         }
     }
