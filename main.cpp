@@ -135,7 +135,7 @@ int main()
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(s_windowManager.width()) / float(s_windowManager.height()), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(0.0f, 300.0f, 0.0f));
+    camera.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     playerCamera = &camera;
 
     glm::ivec3 viewDistanceInChunks{10, 1, 10};
@@ -145,6 +145,13 @@ int main()
     double avgDeltaTime = 1;
 
     auto currentChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
+    for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
+        for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
+            for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
+                world.ensureChunkAtIndex({currentChunkIndex.x + x, currentChunkIndex.y + y, currentChunkIndex.z + z});
+            }
+        }
+    }
 
     while (running) {
 

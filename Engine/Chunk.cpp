@@ -102,6 +102,23 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
 
 Chunk::~Chunk()
 {
+    using Pairs = std::vector<std::pair<Direction, Direction>>;
+    static const auto s_dirPairs = Pairs {
+        {Direction::NegX, Direction::PlusX},
+        {Direction::PlusX, Direction::NegX},
+        {Direction::NegY, Direction::PlusY},
+        {Direction::PlusY, Direction::NegY},
+        {Direction::NegZ, Direction::PlusZ},
+        {Direction::PlusZ, Direction::NegZ},
+    };
+
+    // Remove references to this chunk
+    for (auto& [neighborDir, thisDir] : s_dirPairs) {
+        if (auto otherChunk = neighbor(neighborDir)) {
+            otherChunk->setNeighbor(nullptr, thisDir);
+        }
+    }
+
     glDeleteBuffers(1, &m_vbo);
     glDeleteVertexArrays(1, &m_vao);
 }

@@ -36,7 +36,7 @@ private:
     Chunk* chunkAt(const glm::ivec3& pos) const;
 
     std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
-    glm::vec3 viewDistance;
+    glm::ivec3 viewDistance;
     siv::BasicPerlinNoise<float> m_perlinNoise;
 
     GLuint m_texture;

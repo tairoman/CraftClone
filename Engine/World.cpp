@@ -23,22 +23,10 @@ namespace Engine
 {
 
 World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
-    : viewDistance(chunkIndexToPos(viewDistanceInChunks))
+    : viewDistance(viewDistanceInChunks)
     , m_texture(texture)
 {
     chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
-    for (auto i = 0; i < viewDistanceInChunks.x * 2; i++) {
-        for (auto j = 0; j < viewDistanceInChunks.y; j++) {
-            for (auto k = 0; k < viewDistanceInChunks.z * 2; k++) {
-                const auto worldPos = glm::ivec3 {
-                    i - viewDistanceInChunks.x,
-                    j - viewDistanceInChunks.y,
-                    k - viewDistanceInChunks.z
-                };
-                addChunkAt(worldPos, texture);
-            }   
-        }
-    }
 }
 
 glm::ivec3 World::chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
@@ -81,7 +69,8 @@ void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::
 
 void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
 {
-    for (const auto& [_, chunk] : chunks)
+    std::vector<std::size_t> outsideChunkKeys;
+    for (auto& [key, chunk] : chunks)
     {
         if (isWithinViewDistance(chunk.get(), playerPos))
         {
@@ -91,18 +80,25 @@ void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const
         else
         {
             // Don't render and tag for replacement
+            outsideChunkKeys.push_back(key);
         }
+    }
+
+    for (auto key : outsideChunkKeys) {
+        chunks.erase(key);
     }
 }
 
 bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
 {
     // Get chunk position relative to player
-    const auto chunkPos = ivec3ToVec3(chunk->getCenterPos()) - playerPos;
+
+    const auto chunkDiff = posToChunkIndex(chunk->pos()) - posToChunkIndex(playerPos);
+
     return (
-        std::abs(viewDistance.x - chunkPos.x) > 0 &&
-        std::abs(viewDistance.y - chunkPos.y) > 0 &&
-        std::abs(viewDistance.z - chunkPos.z) > 0
+        viewDistance.x >= std::abs(chunkDiff.x) &&
+        viewDistance.y >= std::abs(chunkDiff.y) &&
+        viewDistance.z >= std::abs(chunkDiff.z)
     );
 }
 
