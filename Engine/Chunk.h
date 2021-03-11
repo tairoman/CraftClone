@@ -79,9 +79,9 @@ namespace Engine
         glm::ivec3 m_startPos; // A corner of the chunk from which we construct all vertex positions
         std::array<BlockType, ChunkData::BLOCKS> m_blocks {};
         std::array<Chunk*, 6> m_neighbors {};
-        GLuint m_vbo;
-        GLuint m_vao;
-        GLuint m_texture;
+        GLuint m_vbo = 0;
+        GLuint m_vao = 0;
+        GLuint m_texture = 0;
         bool m_changed = true;
         std::size_t m_vertices = 0;
         ChunkMesh m_mesh {this};

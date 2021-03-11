@@ -13,18 +13,6 @@ Chunk::Chunk(glm::vec3 pos, GLuint texture, BlockType typ)
     , m_startPos(pos)
     , m_texture(texture)
 {
-    glGenBuffers(1, &m_vbo);
-    glGenVertexArrays(1, &m_vao);
-
-    glBindVertexArray(m_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, textureCoord)));
-    glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
     m_blocks.fill(typ);
 
     m_neighbors.fill(nullptr);
@@ -107,10 +95,31 @@ void Chunk::updateVbo()
     m_changed = false;
     m_mesh.regenerate();
 
-    m_vertices = m_mesh.vertices().size();
+    addMeshData(m_mesh);
+}
+
+void Chunk::addMeshData(const ChunkMesh& mesh)
+{
+    static auto s_glDataInitialized = false;
+
+    if (!s_glDataInitialized) {
+        glGenBuffers(1, &m_vbo);
+        glGenVertexArrays(1, &m_vao);
+
+        glBindVertexArray(m_vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, textureCoord)));
+        glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+    }
+
+    m_vertices = mesh.vertices().size();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, m_mesh.vertices().size() * sizeof(Vertex), m_mesh.vertices().data(), GL_STATIC_DRAW);
-
+    glBufferData(GL_ARRAY_BUFFER, mesh.vertices().size() * sizeof(Vertex), mesh.vertices().data(), GL_STATIC_DRAW);
 }
+
 }
