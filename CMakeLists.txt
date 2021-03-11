@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.18)
 project(CraftBone LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -6,7 +6,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -lSDL2 -lGL -lGLEW")
+set(CMAKE_CXX_FLAGS "-Wall")
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -pedantic -lSDL2 -lGL -lGLEW")
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 file(GLOB imgui
         "lib/imgui/*.h"
@@ -14,6 +18,11 @@ file(GLOB imgui
         "imgui_impl_sdl_gl3.h"
         "imgui_impl_sdl_gl3.cpp"
         )
+
+find_package(GLEW REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(OpenGL REQUIRED)
 
 set(RESOURCE_FILES
         shaders/shader.vert
@@ -53,7 +62,11 @@ set(SOURCE_FILES
 
 add_executable(CraftBone ${SOURCE_FILES} ${imgui})
 
+if (WIN32)
+    set_target_properties(CraftBone PROPERTIES LINK_FLAGS /SUBSYSTEM:CONSOLE)
+endif()
+
 source_group("Headers" Engine/WindowManager.h Engine/Shader.h Engine/Camera.h Engine/Chunk.h Engine/World.h Engine/Logger.h)
 source_group("Source" Engine/WindowManager.cpp Engine/Shader.cpp Engine/Camera.cpp Engine/Chunk.cpp Engine/World.cpp Engine/Logger.cpp)
 
-target_link_libraries(CraftBone SDL2 GL GLEW)
+target_link_libraries(CraftBone SDL2::SDL2 GLEW::GLEW glm::glm OpenGL::GL)

@@ -8,6 +8,7 @@
 #include "World.h"
 
 #include <iostream>
+#include <optional>
 
 namespace
 {

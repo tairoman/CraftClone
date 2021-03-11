@@ -55,7 +55,7 @@ WindowManager::WindowManager()
         SDL_WINDOWPOS_CENTERED,
         0,
         0,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE));
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED));
 
     if (m_window == nullptr) {
         std::cerr << "Couldn't set video mode: " << SDL_GetError() << ".\n";

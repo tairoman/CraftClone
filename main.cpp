@@ -1,9 +1,9 @@
-#include <SDL2/SDL_video.h>
 #include <iostream>
 #include <fstream>
 #include <memory>
 #include <array>
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
@@ -89,7 +89,7 @@ void renderImGui()
     ImGui::Render();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
 
 #if defined (CRAFTBONE_ENABLE_DEBUG_OPENGL)

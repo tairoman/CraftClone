@@ -17,6 +17,8 @@ compile_commands.json
 .idea/
 .clangd/
 .cache/
+.vs/
+CMakeSettings.json
 
 # Prerequisites
 *.d

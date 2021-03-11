@@ -4,7 +4,6 @@
 
 #include <array>
 
-#include <GL/gl.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
