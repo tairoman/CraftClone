@@ -235,13 +235,7 @@ int main(int argc, char* argv[])
         auto newChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
         if (currentChunkIndex != newChunkIndex) {
             currentChunkIndex = newChunkIndex;
-            for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
-                for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
-                    for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
-                        world.ensureChunkAtIndex({newChunkIndex.x + x, newChunkIndex.y + y, newChunkIndex.z + z});
-                    }
-                }
-            }
+            world.setPlayerChunk(currentChunkIndex);
         }
     }
 

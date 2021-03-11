@@ -28,6 +28,47 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
     , m_texture(texture)
 {
     chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
+
+    m_chunkGeneratorThread = std::thread([this](){
+
+        std::cout << "Starting chunk generator thread\n";
+
+        while (!m_stopChunkGeneratorThread.load()) {
+            glm::ivec3 playerChunk;
+            {
+                std::unique_lock<std::mutex> lck(m_playerChunkMutex);
+                m_newPlayerChunkIndex.wait(lck, [this](){
+                    return m_playerChunk.has_value() || m_stopChunkGeneratorThread.load();
+                });
+                
+                if (m_stopChunkGeneratorThread.load()) {
+                    return;
+                }
+
+                // Now m_playerChunk must have a value.
+                // Let's copy it to allow other thread to change m_playerChunk
+                // until next time we execute here.
+                playerChunk = *m_playerChunk;
+                m_playerChunk = {};
+            }
+
+            for (auto x = -viewDistance.x; x < viewDistance.x; x++) {
+                for (auto y = -viewDistance.y; y < viewDistance.y; y++) {
+                    for (auto z = -viewDistance.z; z < viewDistance.z; z++) {
+                        ensureChunkAtIndex({playerChunk.x + x, playerChunk.y + y, playerChunk.z + z});
+                    }
+                }
+            }
+        }
+
+        std::cout << "Ending chunk generator thread\n";
+    });
+}
+
+World::~World()
+{
+    m_stopChunkGeneratorThread = true;
+    m_chunkGeneratorThread.join();
 }
 
 glm::ivec3 World::chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
@@ -70,6 +111,7 @@ void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::
 
 void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
 {
+    std::unique_lock<std::mutex> lck(m_chunksMutex);
     std::vector<std::size_t> outsideChunkKeys;
     for (auto& [key, chunk] : chunks)
     {
@@ -105,6 +147,7 @@ bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
 
 Chunk* World::chunkAt(const glm::ivec3& pos) const
 {
+    std::unique_lock<std::mutex> lck(m_chunksMutex);
     auto hash = std::hash<glm::ivec3>{}(pos);
     auto it = chunks.find(hash);
     return it == chunks.end() ? nullptr : (*it).second.get();
@@ -172,10 +215,21 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
     const auto hashed = std::hash<glm::ivec3>{}(chunkIndex);
 
     const auto observer = chunk.get();
-    
-    chunks[hashed] = std::move(chunk);
+
+    {
+        std::unique_lock<std::mutex> lck(m_chunksMutex);
+        chunks[hashed] = std::move(chunk);
+    }
 
     return observer;
+}
+
+void World::setPlayerChunk(glm::ivec3 chunkIndex)
+{
+    std::cout << "Setting new player chunk!\n";
+    std::unique_lock<std::mutex> lck(m_playerChunkMutex);
+    m_playerChunk = chunkIndex;
+    m_newPlayerChunkIndex.notify_one();
 }
 
 }
