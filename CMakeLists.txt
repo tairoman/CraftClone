@@ -53,6 +53,8 @@ set(SOURCE_FILES
         Engine/Camera.h
         Engine/Chunk.cpp
         Engine/Chunk.h
+        Engine/ChunkMesh.cpp
+        Engine/ChunkMesh.h
         Engine/World.cpp
         Engine/World.h
         Engine/Logger.cpp
@@ -69,4 +71,4 @@ endif()
 source_group("Headers" Engine/WindowManager.h Engine/Shader.h Engine/Camera.h Engine/Chunk.h Engine/World.h Engine/Logger.h)
 source_group("Source" Engine/WindowManager.cpp Engine/Shader.cpp Engine/Camera.cpp Engine/Chunk.cpp Engine/World.cpp Engine/Logger.cpp)
 
-target_link_libraries(CraftBone SDL2::SDL2 GLEW::GLEW glm::glm OpenGL::GL)
+target_link_libraries(CraftBone SDL2::SDL2 GLEW::GLEW glm OpenGL::GL)

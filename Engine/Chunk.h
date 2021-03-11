@@ -4,9 +4,12 @@
 
 #include <array>
 
+#include <GL/gl.h>
 #include <glm/detail/qualifier.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "ChunkMesh.h"
 
 namespace ChunkData
 {
@@ -65,6 +68,8 @@ namespace Engine
         [[nodiscard]] glm::ivec3 pos() const;
         [[nodiscard]] glm::ivec3 getCenterPos() const;
 
+        void addMeshData(const ChunkMesh& mesh);
+
     private:
 
         void updateVbo();
@@ -79,6 +84,7 @@ namespace Engine
         GLuint m_texture;
         bool m_changed = true;
         std::size_t m_vertices = 0;
+        ChunkMesh m_mesh {this};
     };
 }
 
