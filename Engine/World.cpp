@@ -10,15 +10,6 @@
 #include <iostream>
 #include <optional>
 
-namespace
-{
-
-glm::vec3 ivec3ToVec3(const glm::ivec3& ivec)
-{
-    return { ivec.x, ivec.y, ivec.z };
-}
-
-} // anon namespace
 
 namespace Engine
 {
@@ -55,6 +46,9 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
             for (auto x = -viewDistance.x; x < viewDistance.x; x++) {
                 for (auto y = -viewDistance.y; y < viewDistance.y; y++) {
                     for (auto z = -viewDistance.z; z < viewDistance.z; z++) {
+                        if (m_stopChunkGeneratorThread.load()) {
+                            return;
+                        }
                         ensureChunkAtIndex({playerChunk.x + x, playerChunk.y + y, playerChunk.z + z});
                     }
                 }
@@ -212,6 +206,8 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
         lastZ->setNeighbor(chunk.get(), Direction::PlusZ);
     }
 
+    chunk->regenerateMesh();
+
     const auto hashed = std::hash<glm::ivec3>{}(chunkIndex);
 
     const auto observer = chunk.get();
@@ -226,7 +222,6 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
 
 void World::setPlayerChunk(glm::ivec3 chunkIndex)
 {
-    std::cout << "Setting new player chunk!\n";
     std::unique_lock<std::mutex> lck(m_playerChunkMutex);
     m_playerChunk = chunkIndex;
     m_newPlayerChunkIndex.notify_one();

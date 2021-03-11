@@ -55,7 +55,8 @@ void Chunk::set(int x, int y, int z, BlockType type)
 void Chunk::render()
 {
     if (m_changed){
-        updateVbo();
+        m_changed = false;
+        addMeshData(m_mesh);
     }
 
     glActiveTexture(GL_TEXTURE0);
@@ -92,10 +93,14 @@ glm::ivec3 Chunk::getCenterPos() const
 
 void Chunk::updateVbo()
 {
-    m_changed = false;
-    m_mesh.regenerate();
+    regenerateMesh();
 
     addMeshData(m_mesh);
+}
+
+void Chunk::regenerateMesh()
+{
+    m_mesh.regenerate();
 }
 
 void Chunk::addMeshData(const ChunkMesh& mesh)

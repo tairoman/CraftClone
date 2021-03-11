@@ -69,6 +69,7 @@ namespace Engine
         [[nodiscard]] glm::ivec3 getCenterPos() const;
 
         void addMeshData(const ChunkMesh& mesh);
+        void regenerateMesh();
 
     private:
 
