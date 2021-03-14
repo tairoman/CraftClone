@@ -62,6 +62,7 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
 World::~World()
 {
     m_stopChunkGeneratorThread = true;
+    m_newPlayerChunkIndex.notify_all();
     m_chunkGeneratorThread.join();
 }
 
@@ -164,9 +165,10 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
             const auto heightFreq = 256.0f;
             const auto densityFreq = 64.0f;
-            auto heightValue = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / heightFreq, float(worldPos.z + b) / heightFreq, 5), 2) * ChunkData::BLOCKS_Y));
+            const auto maxHeight = 200;
+            auto heightValue = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / heightFreq, float(worldPos.z + b) / heightFreq, 5), 2) * maxHeight));
             auto firstBlock = std::optional<int>();
-            auto startPos = heightValue > (worldPos.y + ChunkData::BLOCKS_Y) ? ChunkData::BLOCKS_Y - 1 : heightValue - worldPos.y;
+            auto startPos = heightValue >= (worldPos.y + ChunkData::BLOCKS_Y) ? ChunkData::BLOCKS_Y - 1 : heightValue - worldPos.y;
             for (auto c = startPos; c >= 0; c--) {
                 auto value =  0.8 * m_perlinNoise.accumulatedOctaveNoise3D_0_1(float(worldPos.x + a) / densityFreq, float(worldPos.y + c) / densityFreq, float(worldPos.z + b) / densityFreq, 3);
                 const auto addBlock = value < 0.7f;

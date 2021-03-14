@@ -149,13 +149,7 @@ int main(int argc, char* argv[])
     double avgDeltaTime = 1;
 
     auto currentChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
-    for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
-        for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
-            for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
-                world.ensureChunkAtIndex({currentChunkIndex.x + x, currentChunkIndex.y + y, currentChunkIndex.z + z});
-            }
-        }
-    }
+    world.setPlayerChunk(currentChunkIndex);
 
     while (running) {
 
