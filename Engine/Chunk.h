@@ -78,7 +78,6 @@ namespace Engine
     private:
 
         void updateVbo();
-        [[nodiscard]] bool checkWorldPositionIf(int x, int y, int z, bool predicate) const;
 
         glm::mat4 m_modelWorldMatrix;
         glm::ivec3 m_startPos; // A corner of the chunk from which we construct all vertex positions

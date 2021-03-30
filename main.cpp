@@ -25,6 +25,7 @@
 #include "Engine/Camera.h"
 #include "Engine/World.h"
 #include "Engine/Logger.h"
+#include "Engine/utils/Chunkindex.h"
 
 struct Config
 {
@@ -142,13 +143,12 @@ int main(int argc, char* argv[])
     camera.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     playerCamera = &camera;
 
-    glm::ivec3 viewDistanceInChunks{10, 1, 10};
-    auto world = Engine::World{viewDistanceInChunks, texture};
+    auto world = Engine::World{texture};
 
     auto now = SDL_GetTicks();
     double avgDeltaTime = 1;
 
-    auto currentChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
+    auto currentChunkIndex = ChunkIndex::fromWorldPos(playerCamera->getPosition());
     world.setPlayerChunk(currentChunkIndex);
 
     while (running) {
@@ -230,8 +230,8 @@ int main(int argc, char* argv[])
             }
         }
 
-        auto newChunkIndex = Engine::World::posToChunkIndex(playerCamera->getPosition());
-        if (currentChunkIndex != newChunkIndex) {
+        auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->getPosition());
+        if (currentChunkIndex.data() != newChunkIndex.data()) {
             currentChunkIndex = newChunkIndex;
             world.setPlayerChunk(currentChunkIndex);
         }

@@ -14,6 +14,7 @@
 
 #include "Chunk.h"
 #include "Shader.h"
+#include "utils/Chunkindex.h"
 
 #include "../lib/PerlinNoise.hpp"
 
@@ -23,28 +24,24 @@ namespace Engine
 class World
 {
 public:
-    World(glm::ivec3 viewDistanceInChunks, GLuint texture);
+    World(GLuint texture);
     ~World();
 
     void render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     void set(int x, int y, int z, BlockType type);
 
-    Chunk* ensureChunkAtIndex(const glm::ivec3& chunkIndex);
+    Chunk* ensureChunkAtIndex(const ChunkIndex& index);
 
-    static glm::ivec3 chunkIndexToPos(glm::ivec3 viewDistanceInChunks);
-    static glm::ivec3 posToChunkIndex(glm::ivec3 pos);
-
-    void setPlayerChunk(glm::ivec3 chunkIndex);
+    void setPlayerChunk(ChunkIndex index);
 
 private:
     void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
     
-    Chunk* addChunkAt(const glm::ivec3& chunkIndex, GLuint texture);
-    Chunk* chunkAt(const glm::ivec3& pos) const;
+    Chunk* addChunkAt(const ChunkIndex& index, GLuint texture);
+    Chunk* chunkAt(const ChunkIndex& index) const;
 
     std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;
-    glm::ivec3 viewDistance;
     siv::BasicPerlinNoise<float> m_perlinNoise;
 
     GLuint m_texture;
@@ -54,7 +51,7 @@ private:
 
     mutable std::mutex m_chunksMutex;
 
-    std::optional<glm::ivec3> m_playerChunk = {};
+    std::optional<ChunkIndex> m_playerChunk = {};
     mutable std::mutex m_playerChunkMutex;
     std::condition_variable m_newPlayerChunkIndex;
 };

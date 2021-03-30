@@ -55,10 +55,14 @@ set(SOURCE_FILES
         Engine/Chunk.h
         Engine/ChunkMesh.cpp
         Engine/ChunkMesh.h
+        Engine/ChunkManager.cpp
+        Engine/ChunkManager.h
         Engine/World.cpp
         Engine/World.h
         Engine/Logger.cpp
         Engine/Logger.h
+        Engine/utils/ChunkIndex.cpp
+        Engine/utils/ChunkIndex.h
         lib/PerlinNoise.hpp
 )
 

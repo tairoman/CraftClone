@@ -6,17 +6,21 @@
 
 #include "Chunk.h"
 #include "World.h"
+#include "utils/Chunkindex.h"
 
 #include <iostream>
 #include <optional>
 
+namespace
+{
+    const auto viewDistanceInChunks = chunkViewDistance();
+}
 
 namespace Engine
 {
 
-World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
-    : viewDistance(viewDistanceInChunks)
-    , m_texture(texture)
+World::World(GLuint texture)
+    : m_texture(texture)
 {
     chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
 
@@ -25,7 +29,7 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
         std::cout << "Starting chunk generator thread\n";
 
         while (!m_stopChunkGeneratorThread.load()) {
-            glm::ivec3 playerChunk;
+            ChunkIndex playerChunk;
             {
                 std::unique_lock<std::mutex> lck(m_playerChunkMutex);
                 m_newPlayerChunkIndex.wait(lck, [this](){
@@ -43,13 +47,15 @@ World::World(glm::ivec3 viewDistanceInChunks, GLuint texture)
                 m_playerChunk = {};
             }
 
-            for (auto x = -viewDistance.x; x < viewDistance.x; x++) {
-                for (auto y = -viewDistance.y; y < viewDistance.y; y++) {
-                    for (auto z = -viewDistance.z; z < viewDistance.z; z++) {
+            for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
+                for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
+                    for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
                         if (m_stopChunkGeneratorThread.load()) {
                             return;
                         }
-                        ensureChunkAtIndex({playerChunk.x + x, playerChunk.y + y, playerChunk.z + z});
+                        const auto& playerChunkData = playerChunk.data();
+                        const auto index = ChunkIndex{ {playerChunkData.x + x, playerChunkData.y + y, playerChunkData.z + z} };
+                        ensureChunkAtIndex(index);
                     }
                 }
             }
@@ -66,29 +72,10 @@ World::~World()
     m_chunkGeneratorThread.join();
 }
 
-glm::ivec3 World::chunkIndexToPos(glm::ivec3 viewDistanceInChunks)
-{
-    // Converts view distance in the form of number of chunks in every direction to actual world length
-    return {
-        viewDistanceInChunks.x * ChunkData::BLOCKS_X * ChunkData::BLOCK_WORLD_EXTENT,
-        viewDistanceInChunks.y * ChunkData::BLOCKS_Y * ChunkData::BLOCK_WORLD_EXTENT,
-        viewDistanceInChunks.z * ChunkData::BLOCKS_Z * ChunkData::BLOCK_WORLD_EXTENT
-    };
-}
-
-glm::ivec3 World::posToChunkIndex(glm::ivec3 pos)
-{
-    return {
-        int(std::floor(pos.x / ChunkData::BLOCKS_X)),
-        int(std::floor(pos.y / ChunkData::BLOCKS_Y)),
-        int(std::floor(pos.z / ChunkData::BLOCKS_Z))
-    };
-}
-
 void World::set(int x, int y, int z, BlockType type)
 {
     // Get the lower-left corner (start) position of the chunk
-    const auto chunkPos = posToChunkIndex({
+    const auto chunkPos = ChunkIndex::fromWorldPos({
         int(std::floor(x / ChunkData::BLOCKS_X)),
         int(std::floor(y / ChunkData::BLOCKS_Y)),
         int(std::floor(z / ChunkData::BLOCKS_Z))
@@ -131,35 +118,35 @@ bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
 {
     // Get chunk position relative to player
 
-    const auto chunkDiff = posToChunkIndex(chunk->pos()) - posToChunkIndex(playerPos);
+    const auto chunkDiff = ChunkIndex::fromWorldPos(chunk->pos()).data() - ChunkIndex::fromWorldPos(playerPos).data();
 
     return (
-        viewDistance.x >= std::abs(chunkDiff.x) &&
-        viewDistance.y >= std::abs(chunkDiff.y) &&
-        viewDistance.z >= std::abs(chunkDiff.z)
+        viewDistanceInChunks.x >= std::abs(chunkDiff.x) &&
+        viewDistanceInChunks.y >= std::abs(chunkDiff.y) &&
+        viewDistanceInChunks.z >= std::abs(chunkDiff.z)
     );
 }
 
-Chunk* World::chunkAt(const glm::ivec3& pos) const
+Chunk* World::chunkAt(const ChunkIndex& index) const
 {
     std::unique_lock<std::mutex> lck(m_chunksMutex);
-    auto hash = std::hash<glm::ivec3>{}(pos);
+    auto hash = std::hash<glm::ivec3>{}(index.data());
     auto it = chunks.find(hash);
     return it == chunks.end() ? nullptr : (*it).second.get();
 }
 
-Chunk* World::ensureChunkAtIndex(const glm::ivec3& chunkIndex)
+Chunk* World::ensureChunkAtIndex(const ChunkIndex& index)
 {
-    auto chunk = chunkAt(chunkIndex);
+    auto chunk = chunkAt(index);
     if (!chunk) {
-        chunk = addChunkAt(chunkIndex, m_texture);
+        chunk = addChunkAt(index, m_texture);
     }
     return chunk;
 }
 
-Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
+Chunk* World::addChunkAt(const ChunkIndex& index, GLuint texture)
 {
-    const auto worldPos = chunkIndexToPos(chunkIndex);
+    const auto worldPos = index.toWorldPos();
     auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::AIR);
     for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
@@ -189,11 +176,11 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
         }
     }
 
-    auto lastZ = chunkAt(chunkIndex + glm::ivec3(0,0,-1));
+    auto lastZ = chunkAt(ChunkIndex{ index.data() + glm::ivec3(0,0,-1) });
 
-    auto lastY = chunkAt(chunkIndex + glm::ivec3(0,-1,0));
+    auto lastY = chunkAt(ChunkIndex{ index.data() + glm::ivec3(0,-1,0) });
 
-    auto lastX = chunkAt(chunkIndex + glm::ivec3(-1,0,0));
+    auto lastX = chunkAt(ChunkIndex{ index.data() + glm::ivec3(-1,0,0) });
 
     chunk->setNeighbor(lastX, Direction::NegX);
     if (lastX) {
@@ -210,7 +197,7 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
 
     chunk->regenerateMesh();
 
-    const auto hashed = std::hash<glm::ivec3>{}(chunkIndex);
+    const auto hashed = std::hash<glm::ivec3>{}(index.data());
 
     const auto observer = chunk.get();
 
@@ -222,10 +209,10 @@ Chunk* World::addChunkAt(const glm::ivec3& chunkIndex, GLuint texture)
     return observer;
 }
 
-void World::setPlayerChunk(glm::ivec3 chunkIndex)
+void World::setPlayerChunk(ChunkIndex index)
 {
     std::unique_lock<std::mutex> lck(m_playerChunkMutex);
-    m_playerChunk = chunkIndex;
+    m_playerChunk = index;
     m_newPlayerChunkIndex.notify_one();
 }
 
