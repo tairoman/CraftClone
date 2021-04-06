@@ -26,25 +26,53 @@ World::World(GLuint texture)
 
     m_chunkGeneratorThread = std::thread([this](){
 
-        std::cout << "Starting chunk generator thread\n";
+        const auto waitForNewPlayerChunkIndex = [this]() {
+            std::unique_lock<std::mutex> lck(m_playerChunkMutex);
+            m_newPlayerChunkIndex.wait(lck, [this]() {
+                return m_playerChunk.has_value() || m_stopChunkGeneratorThread.load();
+                });
+
+            if (m_stopChunkGeneratorThread.load()) {
+                return ChunkIndex{};
+            }
+
+            // Now m_playerChunk must have a value.
+            // Let's copy it to allow other thread to change m_playerChunk
+            // until next time we execute here.
+            const auto playerChunk = *m_playerChunk;
+            m_playerChunk = std::nullopt;
+            return playerChunk;
+        };
+
+        const auto tryGetNewPlayerChunkIndex = [this]() -> std::optional<ChunkIndex> {
+            std::unique_lock<std::mutex> lck(m_playerChunkMutex);
+
+            const auto playerChunk = m_playerChunk;
+            m_playerChunk = {};
+
+            return playerChunk;
+        };
+
+        const auto nextEvent = [this]() {
+            std::unique_lock<std::mutex> lck(m_eventQueueMutex);
+            m_eventQueueCond.wait(lck, [this]() {
+                return !m_events.empty() || m_stopChunkGeneratorThread.load();
+            });
+            if (m_stopChunkGeneratorThread.load()) {
+                return std::make_shared<Event>();
+            }
+            const auto event = m_events.top();
+            m_events.pop();
+            return event;
+        };
+
+        std::cout << "Starting chunk generator thread with id: " << std::this_thread::get_id() << "\n";
 
         while (!m_stopChunkGeneratorThread.load()) {
-            ChunkIndex playerChunk;
-            {
-                std::unique_lock<std::mutex> lck(m_playerChunkMutex);
-                m_newPlayerChunkIndex.wait(lck, [this](){
-                    return m_playerChunk.has_value() || m_stopChunkGeneratorThread.load();
-                });
-                
-                if (m_stopChunkGeneratorThread.load()) {
-                    return;
-                }
+            const auto playerChunk = waitForNewPlayerChunkIndex();
 
-                // Now m_playerChunk must have a value.
-                // Let's copy it to allow other thread to change m_playerChunk
-                // until next time we execute here.
-                playerChunk = *m_playerChunk;
-                m_playerChunk = {};
+            if (m_stopChunkGeneratorThread.load()) {
+                return;
             }
 
             for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
@@ -53,6 +81,22 @@ World::World(GLuint texture)
                         if (m_stopChunkGeneratorThread.load()) {
                             return;
                         }
+
+                        {
+                            std::unique_lock<std::mutex> lck2(m_eventQueueMutex);
+                            while (!m_events.empty()) {
+                                const auto event = m_events.top();
+                                m_events.pop();
+
+                                if (auto removeChunksEvent = dynamic_cast<RemoveChunksEvent*>(event.get())) {
+                                    std::unique_lock<std::mutex> lck(m_chunksMutex);
+                                    for (auto& chunkHash : removeChunksEvent->chunkHashes()) {
+                                        chunks.erase(chunkHash);
+                                    }
+                                }
+                            }
+                        }
+
                         const auto& playerChunkData = playerChunk.data();
                         const auto index = ChunkIndex{ {playerChunkData.x + x, playerChunkData.y + y, playerChunkData.z + z} };
                         ensureChunkAtIndex(index);
@@ -93,25 +137,26 @@ void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::
 
 void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
 {
-    std::unique_lock<std::mutex> lck(m_chunksMutex);
     std::vector<std::size_t> outsideChunkKeys;
-    for (auto& [key, chunk] : chunks)
     {
-        if (isWithinViewDistance(chunk.get(), playerPos))
+        std::unique_lock<std::mutex> lck(m_chunksMutex);
+        for (auto& [key, chunk] : chunks)
         {
-            shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
-            chunk->render();
-        }
-        else
-        {
-            // Don't render and tag for replacement
-            outsideChunkKeys.push_back(key);
+            if (isWithinViewDistance(chunk.get(), playerPos))
+            {
+                shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
+                chunk->render();
+            }
+            else
+            {
+                // Don't render and tag for replacement
+                outsideChunkKeys.push_back(key);
+            }
         }
     }
 
-    for (auto key : outsideChunkKeys) {
-        chunks.erase(key);
-    }
+    std::unique_lock<std::mutex> lck2(m_eventQueueMutex);
+    m_events.push(std::make_shared<RemoveChunksEvent>(std::move(outsideChunkKeys)));
 }
 
 bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const

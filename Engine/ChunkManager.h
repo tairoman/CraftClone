@@ -6,4 +6,6 @@ class ChunkManager
 {
 public:
 	void setSourceChunk(glm::ivec3 chunkIndex);
+
+private:
 };
