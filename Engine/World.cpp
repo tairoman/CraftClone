@@ -26,33 +26,6 @@ World::World(GLuint texture)
 
     m_chunkGeneratorThread = std::thread([this](){
 
-        const auto waitForNewPlayerChunkIndex = [this]() {
-            std::unique_lock<std::mutex> lck(m_playerChunkMutex);
-            m_newPlayerChunkIndex.wait(lck, [this]() {
-                return m_playerChunk.has_value() || m_stopChunkGeneratorThread.load();
-                });
-
-            if (m_stopChunkGeneratorThread.load()) {
-                return ChunkIndex{};
-            }
-
-            // Now m_playerChunk must have a value.
-            // Let's copy it to allow other thread to change m_playerChunk
-            // until next time we execute here.
-            const auto playerChunk = *m_playerChunk;
-            m_playerChunk = std::nullopt;
-            return playerChunk;
-        };
-
-        const auto tryGetNewPlayerChunkIndex = [this]() -> std::optional<ChunkIndex> {
-            std::unique_lock<std::mutex> lck(m_playerChunkMutex);
-
-            const auto playerChunk = m_playerChunk;
-            m_playerChunk = {};
-
-            return playerChunk;
-        };
-
         const auto nextEvent = [this]() {
             std::unique_lock<std::mutex> lck(m_eventQueueMutex);
             m_eventQueueCond.wait(lck, [this]() {
@@ -69,39 +42,36 @@ World::World(GLuint texture)
         std::cout << "Starting chunk generator thread with id: " << std::this_thread::get_id() << "\n";
 
         while (!m_stopChunkGeneratorThread.load()) {
-            const auto playerChunk = waitForNewPlayerChunkIndex();
 
-            if (m_stopChunkGeneratorThread.load()) {
-                return;
-            }
+            // Will block until new event on queue
+            auto event = nextEvent();
 
-            for (auto x = -viewDistanceInChunks.x; x < viewDistanceInChunks.x; x++) {
-                for (auto y = -viewDistanceInChunks.y; y < viewDistanceInChunks.y; y++) {
-                    for (auto z = -viewDistanceInChunks.z; z < viewDistanceInChunks.z; z++) {
-                        if (m_stopChunkGeneratorThread.load()) {
-                            return;
-                        }
-
-                        {
-                            std::unique_lock<std::mutex> lck2(m_eventQueueMutex);
-                            while (!m_events.empty()) {
-                                const auto event = m_events.top();
-                                m_events.pop();
-
-                                if (auto removeChunksEvent = dynamic_cast<RemoveChunksEvent*>(event.get())) {
-                                    std::unique_lock<std::mutex> lck(m_chunksMutex);
-                                    for (auto& chunkHash : removeChunksEvent->chunkHashes()) {
-                                        chunks.erase(chunkHash);
-                                    }
-                                }
-                            }
-                        }
-
-                        const auto& playerChunkData = playerChunk.data();
-                        const auto index = ChunkIndex{ {playerChunkData.x + x, playerChunkData.y + y, playerChunkData.z + z} };
-                        ensureChunkAtIndex(index);
-                    }
+            if (auto removeChunksEvent = dynamic_cast<RemoveChunksEvent*>(event.get())) {
+                std::unique_lock<std::mutex> lck(m_chunksMutex);
+                for (auto& chunkHash : removeChunksEvent->chunkHashes()) {
+                    chunks.erase(chunkHash);
                 }
+            }
+            else if (auto generateChunkEvent = dynamic_cast<GenerateChunkEvent*>(event.get())) {
+                // No value should only be the case before first playerchunk has been set
+                // and therefore before first NewOriginChunkEvent.
+                assert(m_playerChunk.has_value());
+                const auto index = ChunkIndex{ generateChunkEvent->origin().data() + generateChunkEvent->offset().data() };
+                if (generateChunkEvent->origin().data() != m_playerChunk.value().data()) {
+                    // TODO: Check if within range and then maybe generate it anyway instead of having the same event later?
+                    continue; // Origin has changed, ignore this chunk for now
+                }
+                
+                ensureChunkAtIndex(index);
+                auto nextIndex = ChunkIndex{ generateChunkEvent->offset().data() + glm::ivec3{0,0,1} };
+                std::unique_lock<std::mutex> lck(m_eventQueueMutex);
+                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), nextIndex));
+            }
+            else if (auto newOriginChunkEvent = dynamic_cast<NewOriginChunkEvent*>(event.get())) {
+                m_playerChunk = newOriginChunkEvent->index();
+                std::unique_lock<std::mutex> lck(m_eventQueueMutex);
+                // New start for chunk generation
+                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{ -viewDistanceInChunks }));
             }
         }
 
@@ -112,7 +82,7 @@ World::World(GLuint texture)
 World::~World()
 {
     m_stopChunkGeneratorThread = true;
-    m_newPlayerChunkIndex.notify_all();
+    m_eventQueueCond.notify_all();
     m_chunkGeneratorThread.join();
 }
 
@@ -163,13 +133,18 @@ bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
 {
     // Get chunk position relative to player
 
-    const auto chunkDiff = ChunkIndex::fromWorldPos(chunk->pos()).data() - ChunkIndex::fromWorldPos(playerPos).data();
+    return isWithinViewDistance(ChunkIndex::fromWorldPos(chunk->pos()), ChunkIndex::fromWorldPos(playerPos));
+}
+
+bool World::isWithinViewDistance(const ChunkIndex& chunk, const ChunkIndex& playerChunk) const
+{
+    const auto chunkDiff = chunk.data() - playerChunk.data();
 
     return (
         viewDistanceInChunks.x >= std::abs(chunkDiff.x) &&
         viewDistanceInChunks.y >= std::abs(chunkDiff.y) &&
         viewDistanceInChunks.z >= std::abs(chunkDiff.z)
-    );
+        );
 }
 
 Chunk* World::chunkAt(const ChunkIndex& index) const
@@ -256,9 +231,9 @@ Chunk* World::addChunkAt(const ChunkIndex& index, GLuint texture)
 
 void World::setPlayerChunk(ChunkIndex index)
 {
-    std::unique_lock<std::mutex> lck(m_playerChunkMutex);
-    m_playerChunk = index;
-    m_newPlayerChunkIndex.notify_one();
+    std::unique_lock<std::mutex> lck(m_eventQueueMutex);
+    m_events.push(std::make_shared<NewOriginChunkEvent>(index));
+    m_eventQueueCond.notify_one();
 }
 
 }

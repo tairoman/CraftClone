@@ -51,13 +51,44 @@ private:
 class RemoveChunksEvent : public Event
 {
 public:
-    RemoveChunksEvent(std::vector<std::size_t> chunkHashes) : m_chunkHashes(std::move(chunkHashes)) {}
+    RemoveChunksEvent(std::vector<std::size_t> chunkHashes) : Event(5), m_chunkHashes(std::move(chunkHashes)) {}
     ~RemoveChunksEvent() override = default;
 
-    const std::vector<std::size_t> chunkHashes() const { return m_chunkHashes; };
+    const std::vector<std::size_t>& chunkHashes() const { return m_chunkHashes; };
 
 private:
     std::vector<std::size_t> m_chunkHashes;
+};
+
+class GenerateChunkEvent : public Event
+{
+public:
+    GenerateChunkEvent(ChunkIndex originIndex, ChunkIndex offsetIndex) : 
+        Event(10),
+        m_originIndex(std::move(originIndex)),
+        m_offsetIndex(std::move(offsetIndex))
+    {}
+
+    ~GenerateChunkEvent() override = default;
+
+    const ChunkIndex& origin() const { return m_originIndex; }
+    const ChunkIndex& offset() const { return m_offsetIndex; }
+
+private:
+    ChunkIndex m_originIndex;
+    ChunkIndex m_offsetIndex;
+};
+
+class NewOriginChunkEvent : public Event
+{
+public:
+    NewOriginChunkEvent(ChunkIndex index) : Event(50), m_index(std::move(index)) {}
+    ~NewOriginChunkEvent() override = default;
+
+    const ChunkIndex& index() const { return m_index; }
+
+private:
+    ChunkIndex m_index;
 };
 
 class World
@@ -76,6 +107,7 @@ public:
 private:
     void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
+    bool isWithinViewDistance(const ChunkIndex& chunk, const ChunkIndex& playerChunk) const;
     
     Chunk* addChunkAt(const ChunkIndex& index, GLuint texture);
     Chunk* chunkAt(const ChunkIndex& index) const;
@@ -91,8 +123,6 @@ private:
     mutable std::mutex m_chunksMutex;
 
     std::optional<ChunkIndex> m_playerChunk = {};
-    mutable std::mutex m_playerChunkMutex;
-    std::condition_variable m_newPlayerChunkIndex;
 
     mutable std::mutex m_eventQueueMutex;
     std::condition_variable m_eventQueueCond;
