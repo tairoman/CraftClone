@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <glm/ext/vector_int3.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtx/component_wise.hpp>
 
 #include "Chunk.h"
 #include "World.h"
@@ -39,6 +40,49 @@ World::World(GLuint texture)
             return event;
         };
 
+        const auto nextIndex = [this](const ChunkIndex& origin, const ChunkIndex& lastOffset) -> std::optional<ChunkIndex> {
+
+            const auto& offsetData = glm::ivec3{ lastOffset.data().x, 0, lastOffset.data().z };
+
+            const auto currentRing = glm::compMax(glm::abs(offsetData));
+
+            if (!isWithinViewDistance(lastOffset, origin)) {
+                return std::nullopt;
+            }
+
+            if (currentRing == 0) {
+                return ChunkIndex{ glm::ivec3{-1, 0, -1} };
+            }
+
+            if (offsetData.z == -currentRing) {
+                if (offsetData.x < currentRing) {
+                    return ChunkIndex{ glm::ivec3{ offsetData.x + 1, lastOffset.data().y, offsetData.z} };
+                }
+            }
+
+            if (offsetData.x == currentRing) {
+                if (offsetData.z < currentRing) {
+                    return ChunkIndex{ glm::ivec3{ offsetData.x, lastOffset.data().y, offsetData.z + 1 } };
+                }
+            }
+
+            if (offsetData.z == currentRing) {
+                if (offsetData.x > -currentRing) {
+                    return ChunkIndex{ glm::ivec3{ offsetData.x - 1, lastOffset.data().y, offsetData.z } };
+                }
+            }
+
+            if (offsetData.x == -currentRing) {
+                // We don't want to return {-currentRing, -currentRing} because that signals we want to change ring
+                if (offsetData.z > -currentRing + 1) {
+                    return ChunkIndex{ glm::ivec3{ offsetData.x, lastOffset.data().y, offsetData.z - 1 } };
+                }
+            }
+
+            // Go to next ring
+            return ChunkIndex{ glm::ivec3{ offsetData.x - 1, lastOffset.data().y, offsetData.z - 2 } };
+        };
+
         std::cout << "Starting chunk generator thread with id: " << std::this_thread::get_id() << "\n";
 
         while (!m_stopChunkGeneratorThread.load()) {
@@ -63,15 +107,23 @@ World::World(GLuint texture)
                 }
                 
                 ensureChunkAtIndex(index);
-                auto nextIndex = ChunkIndex{ generateChunkEvent->offset().data() + glm::ivec3{0,0,1} };
+                auto nextIndexOpt = nextIndex(generateChunkEvent->origin(), generateChunkEvent->offset());
+                if (!nextIndexOpt.has_value()) {
+                    // Outside of view distance -> generate no new chunks
+                    continue;
+                }
+
+                const auto data = nextIndexOpt.value().data();
+                std::cout << "Generating new chunk at: " << data.x << ", " << data.y << ", " << data.z << "\n";
+
                 std::unique_lock<std::mutex> lck(m_eventQueueMutex);
-                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), nextIndex));
+                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), nextIndexOpt.value()));
             }
             else if (auto newOriginChunkEvent = dynamic_cast<NewOriginChunkEvent*>(event.get())) {
                 m_playerChunk = newOriginChunkEvent->index();
                 std::unique_lock<std::mutex> lck(m_eventQueueMutex);
                 // New start for chunk generation
-                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{ -viewDistanceInChunks }));
+                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{{0,0,0}}));
             }
         }
 

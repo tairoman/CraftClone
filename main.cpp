@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(s_windowManager.width()) / float(s_windowManager.height()), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
+    camera.setPosition(glm::vec3(10.0f, 100.0f, 10.0f));
     playerCamera = &camera;
 
     auto world = Engine::World{texture};
