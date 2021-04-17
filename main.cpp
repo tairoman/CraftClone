@@ -4,6 +4,7 @@
 #include <array>
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #endif
 
@@ -98,7 +99,7 @@ int main(int argc, char* argv[])
 {
 
 #if defined (CRAFTBONE_ENABLE_DEBUG_OPENGL)
-    Logger::registerGlLogger();
+    //Logger::registerGlLogger();
 #endif
 
     SDL_Window* window = Engine::WindowManager::instance().sdlWindow();
@@ -140,7 +141,7 @@ int main(int argc, char* argv[])
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(s_windowManager.width()) / float(s_windowManager.height()), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(10.0f, 100.0f, 10.0f));
+    camera.setPosition(glm::vec3(1000.0f, 100.0f, 1000.0f));
     playerCamera = &camera;
 
     auto world = Engine::World{texture};

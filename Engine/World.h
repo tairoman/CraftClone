@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <optional>
+#include <limits>
 
 #include "Chunk.h"
 #include "Shader.h"
@@ -45,13 +46,13 @@ public:
         return m_priority < b.priority();
     }
 private:
-    std::size_t m_priority = 0;
+    std::size_t m_priority = std::numeric_limits<std::size_t>::max();
 };
 
 class RemoveChunksEvent : public Event
 {
 public:
-    RemoveChunksEvent(std::vector<std::size_t> chunkHashes) : Event(5), m_chunkHashes(std::move(chunkHashes)) {}
+    RemoveChunksEvent(std::vector<std::size_t> chunkHashes) : Event(100), m_chunkHashes(std::move(chunkHashes)) {}
     ~RemoveChunksEvent() override = default;
 
     const std::vector<std::size_t>& chunkHashes() const { return m_chunkHashes; };
@@ -82,7 +83,7 @@ private:
 class NewOriginChunkEvent : public Event
 {
 public:
-    NewOriginChunkEvent(ChunkIndex index) : Event(50), m_index(std::move(index)) {}
+    NewOriginChunkEvent(ChunkIndex index) : Event(1), m_index(std::move(index)) {}
     ~NewOriginChunkEvent() override = default;
 
     const ChunkIndex& index() const { return m_index; }
@@ -100,16 +101,16 @@ public:
     void render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     void set(int x, int y, int z, BlockType type);
 
-    Chunk* ensureChunkAtIndex(const ChunkIndex& index);
-
     void setPlayerChunk(ChunkIndex index);
 
 private:
     void renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix);
     bool isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const;
     bool isWithinViewDistance(const ChunkIndex& chunk, const ChunkIndex& playerChunk) const;
+    bool isWithinViewDistance(const glm::ivec3& offset) const;
     
-    Chunk* addChunkAt(const ChunkIndex& index, GLuint texture);
+    void ensureChunkAtIndex(const ChunkIndex& index);
+    void addChunkAt(const ChunkIndex& index, GLuint texture);
     Chunk* chunkAt(const ChunkIndex& index) const;
 
     std::unordered_map<std::size_t, std::unique_ptr<Chunk>> chunks;

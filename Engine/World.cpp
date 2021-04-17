@@ -40,13 +40,13 @@ World::World(GLuint texture)
             return event;
         };
 
-        const auto nextIndex = [this](const ChunkIndex& origin, const ChunkIndex& lastOffset) -> std::optional<ChunkIndex> {
+        const auto nextIndex = [this](const ChunkIndex& lastOffset) -> std::optional<ChunkIndex> {
 
             const auto& offsetData = glm::ivec3{ lastOffset.data().x, 0, lastOffset.data().z };
 
             const auto currentRing = glm::compMax(glm::abs(offsetData));
 
-            if (!isWithinViewDistance(lastOffset, origin)) {
+            if (!isWithinViewDistance(lastOffset.data())) {
                 return std::nullopt;
             }
 
@@ -100,21 +100,21 @@ World::World(GLuint texture)
                 // No value should only be the case before first playerchunk has been set
                 // and therefore before first NewOriginChunkEvent.
                 assert(m_playerChunk.has_value());
-                const auto index = ChunkIndex{ generateChunkEvent->origin().data() + generateChunkEvent->offset().data() };
+                const auto index = glm::ivec3{ generateChunkEvent->origin().data() + generateChunkEvent->offset().data() };
                 if (generateChunkEvent->origin().data() != m_playerChunk.value().data()) {
                     // TODO: Check if within range and then maybe generate it anyway instead of having the same event later?
                     continue; // Origin has changed, ignore this chunk for now
                 }
                 
-                ensureChunkAtIndex(index);
-                auto nextIndexOpt = nextIndex(generateChunkEvent->origin(), generateChunkEvent->offset());
+                for (auto yIndex = -viewDistanceInChunks.y; yIndex < viewDistanceInChunks.y; yIndex++) {
+                    ensureChunkAtIndex(ChunkIndex{ index + glm::ivec3{0, yIndex, 0} });
+                }
+                
+                auto nextIndexOpt = nextIndex(generateChunkEvent->offset());
                 if (!nextIndexOpt.has_value()) {
                     // Outside of view distance -> generate no new chunks
                     continue;
                 }
-
-                const auto data = nextIndexOpt.value().data();
-                std::cout << "Generating new chunk at: " << data.x << ", " << data.y << ", " << data.z << "\n";
 
                 std::unique_lock<std::mutex> lck(m_eventQueueMutex);
                 m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), nextIndexOpt.value()));
@@ -140,16 +140,9 @@ World::~World()
 
 void World::set(int x, int y, int z, BlockType type)
 {
-    // Get the lower-left corner (start) position of the chunk
-    const auto chunkPos = ChunkIndex::fromWorldPos({
-        int(std::floor(x / ChunkData::BLOCKS_X)),
-        int(std::floor(y / ChunkData::BLOCKS_Y)),
-        int(std::floor(z / ChunkData::BLOCKS_Z))
-    });
-    
-    auto chunk = ensureChunkAtIndex(chunkPos);
-
-    chunk->set(x % ChunkData::BLOCKS_X, y % ChunkData::BLOCKS_Y, z % ChunkData::BLOCKS_Z, type);
+    assert(false);
+    //TODO: Implement with event
+    //chunk->set(x % ChunkData::BLOCKS_X, y % ChunkData::BLOCKS_Y, z % ChunkData::BLOCKS_Z, type);
 }
 
 void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
@@ -192,10 +185,15 @@ bool World::isWithinViewDistance(const ChunkIndex& chunk, const ChunkIndex& play
 {
     const auto chunkDiff = chunk.data() - playerChunk.data();
 
+    return isWithinViewDistance(chunkDiff);
+}
+
+bool World::isWithinViewDistance(const glm::ivec3& offset) const
+{
     return (
-        viewDistanceInChunks.x >= std::abs(chunkDiff.x) &&
-        viewDistanceInChunks.y >= std::abs(chunkDiff.y) &&
-        viewDistanceInChunks.z >= std::abs(chunkDiff.z)
+        viewDistanceInChunks.x >= std::abs(offset.x) &&
+        viewDistanceInChunks.y >= std::abs(offset.y) &&
+        viewDistanceInChunks.z >= std::abs(offset.z)
         );
 }
 
@@ -207,16 +205,15 @@ Chunk* World::chunkAt(const ChunkIndex& index) const
     return it == chunks.end() ? nullptr : (*it).second.get();
 }
 
-Chunk* World::ensureChunkAtIndex(const ChunkIndex& index)
+void World::ensureChunkAtIndex(const ChunkIndex& index)
 {
     auto chunk = chunkAt(index);
     if (!chunk) {
-        chunk = addChunkAt(index, m_texture);
+        addChunkAt(index, m_texture);
     }
-    return chunk;
 }
 
-Chunk* World::addChunkAt(const ChunkIndex& index, GLuint texture)
+void World::addChunkAt(const ChunkIndex& index, GLuint texture)
 {
     const auto worldPos = index.toWorldPos();
     auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::AIR);
@@ -271,14 +268,10 @@ Chunk* World::addChunkAt(const ChunkIndex& index, GLuint texture)
 
     const auto hashed = std::hash<glm::ivec3>{}(index.data());
 
-    const auto observer = chunk.get();
-
     {
         std::unique_lock<std::mutex> lck(m_chunksMutex);
         chunks[hashed] = std::move(chunk);
     }
-
-    return observer;
 }
 
 void World::setPlayerChunk(ChunkIndex index)
