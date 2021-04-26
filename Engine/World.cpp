@@ -106,7 +106,7 @@ World::World(GLuint texture)
                     continue; // Origin has changed, ignore this chunk for now
                 }
                 
-                for (auto yIndex = -viewDistanceInChunks.y; yIndex < viewDistanceInChunks.y; yIndex++) {
+                for (auto yIndex = viewDistanceInChunks.y; yIndex > -viewDistanceInChunks.y; yIndex--) {
                     ensureChunkAtIndex(ChunkIndex{ index + glm::ivec3{0, yIndex, 0} });
                 }
                 
@@ -217,27 +217,28 @@ void World::addChunkAt(const ChunkIndex& index, GLuint texture)
 {
     const auto worldPos = index.toWorldPos();
     auto chunk = std::make_unique<Chunk>(worldPos, texture, BlockType::AIR);
+    const auto chunkAbove = chunkAt(ChunkIndex{ index.data() + glm::ivec3{0,1,0} });
     for (auto a = 0; a < ChunkData::BLOCKS_X; a++) {
         for (auto b = 0; b < ChunkData::BLOCKS_Z; b++) {
             const auto heightFreq = 256.0f;
-            const auto densityFreq = 64.0f;
+            const auto densityFreq = 32.0f;
             const auto maxHeight = 200;
             auto heightValue = int(std::floor(std::pow(m_perlinNoise.accumulatedOctaveNoise2D_0_1(float(worldPos.x + a) / heightFreq, float(worldPos.z + b) / heightFreq, 5), 2) * maxHeight));
-            auto firstBlock = std::optional<int>();
             auto startPos = heightValue >= (worldPos.y + ChunkData::BLOCKS_Y) ? ChunkData::BLOCKS_Y - 1 : heightValue - worldPos.y;
+            auto firstBlock = chunkAbove ? (chunkAbove->get(a, 0, b) == BlockType::AIR ? std::nullopt : std::make_optional(std::numeric_limits<int>::max())) : std::nullopt;
             for (auto c = startPos; c >= 0; c--) {
-                auto value =  0.8 * m_perlinNoise.accumulatedOctaveNoise3D_0_1(float(worldPos.x + a) / densityFreq, float(worldPos.y + c) / densityFreq, float(worldPos.z + b) / densityFreq, 3);
+                auto value = m_perlinNoise.accumulatedOctaveNoise3D_0_1(float(worldPos.x + a) / densityFreq, float(worldPos.y + c) / densityFreq, float(worldPos.z + b) / densityFreq, 2);
                 const auto addBlock = value < 0.7f;
                 if (!addBlock) {
                     continue;
                 }
 
                 auto blockType = BlockType::STONE;
-                if (!firstBlock.has_value()) {
+                if (!firstBlock.has_value() && (worldPos.y + c) >= 0) {
                     firstBlock = c;
                     blockType = BlockType::GRASS;
                 }
-                else if (c > (*firstBlock - 3)) {
+                else if (firstBlock.has_value() && c > (*firstBlock - 3)) {
                     blockType = BlockType::DIRT;
                 }
                 chunk->set(a, c, b, blockType);
