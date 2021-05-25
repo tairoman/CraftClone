@@ -24,15 +24,6 @@
 namespace Engine
 {
 
-template <typename T>
-struct SharedPtrComparator {
-    bool operator()(const std::shared_ptr<T>& lhs,
-        const std::shared_ptr<T>& rhs) const
-    {
-        return lhs < rhs;
-    }
-};
-
 class RemoveChunksEvent : public Event
 {
 public:

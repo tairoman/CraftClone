@@ -77,13 +77,7 @@ World::World(GLuint texture)
             // Will block until new event on queue
             auto event = m_eventQueue.nextEvent();
 
-            if (auto removeChunksEvent = dynamic_cast<RemoveChunksEvent*>(event.get())) {
-                std::unique_lock<std::mutex> lck(m_chunksMutex);
-                for (auto& chunkHash : removeChunksEvent->chunkHashes()) {
-                    chunks.erase(chunkHash);
-                }
-            }
-            else if (auto generateChunkEvent = dynamic_cast<GenerateChunkEvent*>(event.get())) {
+            if (auto generateChunkEvent = dynamic_cast<GenerateChunkEvent*>(event.get())) {
                 // No value should only be the case before first playerchunk has been set
                 // and therefore before first NewOriginChunkEvent.
                 assert(m_playerChunk.has_value());
@@ -92,21 +86,33 @@ World::World(GLuint texture)
                     // TODO: Check if within range and then maybe generate it anyway instead of having the same event later?
                     continue; // Origin has changed, ignore this chunk for now
                 }
-                
-                for (auto yIndex = viewDistanceInChunks.y; yIndex > -viewDistanceInChunks.y; yIndex--) {
-                    ensureChunkAtIndex(ChunkIndex{ index + glm::ivec3{0, yIndex, 0} });
-                }
-                
+               
                 auto nextIndexOpt = nextIndex(generateChunkEvent->offset());
                 if (!nextIndexOpt.has_value()) {
                     // Outside of view distance -> generate no new chunks
                     continue;
                 }
 
+                for (auto yIndex = viewDistanceInChunks.y; yIndex > -viewDistanceInChunks.y; yIndex--) {
+                    ensureChunkAtIndex(ChunkIndex{ index + glm::ivec3{0, yIndex, 0} });
+                }
+
                 m_eventQueue.addEvent(std::make_unique<GenerateChunkEvent>(m_playerChunk.value(), nextIndexOpt.value()));
             }
             else if (auto newOriginChunkEvent = dynamic_cast<NewOriginChunkEvent*>(event.get())) {
                 m_playerChunk = newOriginChunkEvent->index();
+                std::vector<std::size_t> outsideChunkKeys;
+                {
+                    std::unique_lock<std::mutex> lck(m_chunksMutex);
+                    for (auto& [key, chunk] : chunks) {
+                        if (!isWithinViewDistance(chunk.get(), newOriginChunkEvent->index().toWorldPos())) {
+                            outsideChunkKeys.push_back(key);
+                        }
+                    }
+                    for (auto key : outsideChunkKeys) {
+                        chunks.erase(key);
+                    }
+                }
                 // New start for chunk generation
                 m_eventQueue.addEvent(std::make_unique<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{ {0,0,0} }));
             }
@@ -136,25 +142,12 @@ void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::
 
 void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
 {
-    std::vector<std::size_t> outsideChunkKeys;
+    std::unique_lock<std::mutex> lck(m_chunksMutex);
+    for (auto& [key, chunk] : chunks)
     {
-        std::unique_lock<std::mutex> lck(m_chunksMutex);
-        for (auto& [key, chunk] : chunks)
-        {
-            if (isWithinViewDistance(chunk.get(), playerPos))
-            {
-                shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
-                chunk->render();
-            }
-            else
-            {
-                // Don't render and tag for replacement
-                outsideChunkKeys.push_back(key);
-            }
-        }
+        shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
+        chunk->render();
     }
-
-    m_eventQueue.addEvent(std::make_unique<RemoveChunksEvent>(std::move(outsideChunkKeys)));
 }
 
 bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const

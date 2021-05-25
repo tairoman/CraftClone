@@ -33,6 +33,6 @@ const glm::ivec3& ChunkIndex::data() const
 
 glm::ivec3 chunkViewDistance()
 {
-    static const auto s_chunkViewDistance = glm::ivec3{ 10, 5, 10 };
+    static const auto s_chunkViewDistance = glm::ivec3{ 5, 2, 5 };
     return s_chunkViewDistance;
 }

@@ -11,6 +11,7 @@ void EventQueue::addEvent(std::unique_ptr<Event> ev)
 {
 	std::unique_lock<std::mutex> lck(m_eventQueueMutex);
 	m_events.push(std::move(ev));
+    m_eventQueueCond.notify_one();
 }
 
 std::shared_ptr<Event> EventQueue::nextEvent()
