@@ -61,6 +61,10 @@ set(SOURCE_FILES
         Engine/World.h
         Engine/Logger.cpp
         Engine/Logger.h
+        Engine/events/Event.cpp
+        Engine/events/Event.h
+        Engine/events/EventQueue.cpp
+        Engine/events/eventQueue.h
         Engine/utils/ChunkIndex.cpp
         Engine/utils/ChunkIndex.h
         lib/PerlinNoise.hpp

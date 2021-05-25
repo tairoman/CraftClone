@@ -27,19 +27,6 @@ World::World(GLuint texture)
 
     m_chunkGeneratorThread = std::thread([this](){
 
-        const auto nextEvent = [this]() {
-            std::unique_lock<std::mutex> lck(m_eventQueueMutex);
-            m_eventQueueCond.wait(lck, [this]() {
-                return !m_events.empty() || m_stopChunkGeneratorThread.load();
-            });
-            if (m_stopChunkGeneratorThread.load()) {
-                return std::make_shared<Event>();
-            }
-            const auto event = m_events.top();
-            m_events.pop();
-            return event;
-        };
-
         const auto nextIndex = [this](const ChunkIndex& lastOffset) -> std::optional<ChunkIndex> {
 
             const auto& offsetData = glm::ivec3{ lastOffset.data().x, 0, lastOffset.data().z };
@@ -88,7 +75,7 @@ World::World(GLuint texture)
         while (!m_stopChunkGeneratorThread.load()) {
 
             // Will block until new event on queue
-            auto event = nextEvent();
+            auto event = m_eventQueue.nextEvent();
 
             if (auto removeChunksEvent = dynamic_cast<RemoveChunksEvent*>(event.get())) {
                 std::unique_lock<std::mutex> lck(m_chunksMutex);
@@ -116,14 +103,12 @@ World::World(GLuint texture)
                     continue;
                 }
 
-                std::unique_lock<std::mutex> lck(m_eventQueueMutex);
-                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), nextIndexOpt.value()));
+                m_eventQueue.addEvent(std::make_unique<GenerateChunkEvent>(m_playerChunk.value(), nextIndexOpt.value()));
             }
             else if (auto newOriginChunkEvent = dynamic_cast<NewOriginChunkEvent*>(event.get())) {
                 m_playerChunk = newOriginChunkEvent->index();
-                std::unique_lock<std::mutex> lck(m_eventQueueMutex);
                 // New start for chunk generation
-                m_events.push(std::make_shared<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{{0,0,0}}));
+                m_eventQueue.addEvent(std::make_unique<GenerateChunkEvent>(m_playerChunk.value(), ChunkIndex{ {0,0,0} }));
             }
         }
 
@@ -134,7 +119,6 @@ World::World(GLuint texture)
 World::~World()
 {
     m_stopChunkGeneratorThread = true;
-    m_eventQueueCond.notify_all();
     m_chunkGeneratorThread.join();
 }
 
@@ -170,8 +154,7 @@ void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const
         }
     }
 
-    std::unique_lock<std::mutex> lck2(m_eventQueueMutex);
-    m_events.push(std::make_shared<RemoveChunksEvent>(std::move(outsideChunkKeys)));
+    m_eventQueue.addEvent(std::make_unique<RemoveChunksEvent>(std::move(outsideChunkKeys)));
 }
 
 bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const
@@ -277,9 +260,7 @@ void World::addChunkAt(const ChunkIndex& index, GLuint texture)
 
 void World::setPlayerChunk(ChunkIndex index)
 {
-    std::unique_lock<std::mutex> lck(m_eventQueueMutex);
-    m_events.push(std::make_shared<NewOriginChunkEvent>(index));
-    m_eventQueueCond.notify_one();
+    m_eventQueue.addEvent(std::make_unique<NewOriginChunkEvent>(index));
 }
 
 }

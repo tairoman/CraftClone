@@ -12,10 +12,11 @@
 #include <condition_variable>
 #include <atomic>
 #include <optional>
-#include <limits>
 
 #include "Chunk.h"
 #include "Shader.h"
+#include "events/Event.h"
+#include "events/EventQueue.h"
 #include "utils/Chunkindex.h"
 
 #include "../lib/PerlinNoise.hpp"
@@ -30,23 +31,6 @@ struct SharedPtrComparator {
     {
         return lhs < rhs;
     }
-};
-
-class Event
-{
-public:
-    Event() = default;
-    Event(std::size_t priority) : m_priority(priority) {}
-    virtual ~Event() {};
-
-    std::size_t priority() const { return m_priority;  }
-
-    bool operator<(const Event& b) const
-    {
-        return m_priority < b.priority();
-    }
-private:
-    std::size_t m_priority = std::numeric_limits<std::size_t>::max();
 };
 
 class RemoveChunksEvent : public Event
@@ -125,9 +109,7 @@ private:
 
     std::optional<ChunkIndex> m_playerChunk = {};
 
-    mutable std::mutex m_eventQueueMutex;
-    std::condition_variable m_eventQueueCond;
-    std::priority_queue<std::shared_ptr<Event>, std::vector<std::shared_ptr<Event>>, SharedPtrComparator<Event>> m_events;
+    EventQueue m_eventQueue;
 };
 
 }
