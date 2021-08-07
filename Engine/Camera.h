@@ -1,6 +1,4 @@
-
-#ifndef CRAFTBONE_CAMERA_H
-#define CRAFTBONE_CAMERA_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -14,11 +12,9 @@ class Camera
 
 public:
 
-    Camera(glm::vec3 pos, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
+    Camera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
 
     Camera(float fovy, float aspectRatio, float near, float far);
-
-    void setDirection(glm::vec3 direction);
 
     void setUp(glm::vec3 up);
 
@@ -28,7 +24,7 @@ public:
 
     void setPerspective(float fovy, float aspectRatio, float near, float far);
 
-    void update();
+    void updateViewMatrix();
 
     void rotate(float deltaX, float deltaY);
 
@@ -49,20 +45,17 @@ public:
     glm::mat4 getView();
 
     Property<glm::vec3> position;
+    Property<glm::vec3> direction;
 
 private:
     glm::mat4 m_viewMatrix;
     glm::mat4 m_projectionMatrix;
 
-    glm::vec3 m_direction;
     glm::vec3 m_up;
 
     float m_moveSpeed = 0.1f;
     float m_rotSpeed = 0.01f;
     float m_speedMultiplier = 1.0f;
-
 };
 
 }
-
-#endif //CRAFTBONE_CAMERA_H

@@ -1,6 +1,4 @@
-
-#ifndef CRAFTBONE_CHUNK_H
-#define CRAFTBONE_CHUNK_H
+#pragma once
 
 #include <array>
 
@@ -87,6 +85,3 @@ namespace Engine
         ChunkMesh m_mesh {this};
     };
 }
-
-
-#endif //CRAFTBONE_CHUNK_H

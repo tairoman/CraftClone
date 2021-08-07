@@ -10,12 +10,20 @@
 namespace Engine
 {
 
-    Camera::Camera(glm::vec3 pos, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
+    Camera::Camera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
         : position(std::move(pos))
-        , m_direction(std::move(direction))
+        , direction(std::move(dir))
         , m_up(std::move(up))
     {
         setPerspective(fovy, aspectRatio, near, far);
+
+        position.onChange.listen([this](const glm::vec3&) {
+            updateViewMatrix();
+        });
+
+        direction.onChange.listen([this](const glm::vec3&) {
+            updateViewMatrix();
+        });
     }
 
     Camera::Camera(float fovy, float aspectRatio, float near, float far)
@@ -29,14 +37,9 @@ namespace Engine
         m_projectionMatrix = glm::perspective(glm::radians(fovy), aspectRatio, near, far);
     }
 
-    void Camera::update()
+    void Camera::updateViewMatrix()
     {
-        m_viewMatrix = glm::lookAt(position.get(), position.get() + m_direction, m_up);
-    }
-
-    void Camera::setDirection(glm::vec3 direction)
-    {
-        m_direction = direction;
+        m_viewMatrix = glm::lookAt(position.get(), position.get() + direction.get(), m_up);
     }
 
     void Camera::setUp(glm::vec3 up)
@@ -48,8 +51,8 @@ namespace Engine
     {
         glm::mat4 yaw = glm::rotate(m_rotSpeed * -deltaX, m_up);
         glm::mat4 pitch = glm::rotate(m_rotSpeed * -deltaY,
-                                    glm::normalize(cross(m_direction, m_up)));
-        m_direction = glm::vec3(pitch * yaw * glm::vec4(m_direction, 0.0f));
+                                    glm::normalize(cross(direction.get(), m_up)));
+        direction.set(glm::vec3(pitch * yaw * glm::vec4(direction.get(), 0.0f)));
     }
 
     void Camera::moveLeft(float speed)
@@ -81,11 +84,11 @@ namespace Engine
         auto newPos = position.get();
         
         if (moveVec.x != 0) {
-            newPos += moveVec.x * glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier;
+            newPos += moveVec.x * glm::normalize(glm::cross(direction.get(), m_up)) * m_speedMultiplier;
         }
 
         if (moveVec.y != 0) {
-            newPos += moveVec.y * m_speedMultiplier * m_direction;
+            newPos += moveVec.y * m_speedMultiplier * direction.get();
         }
 
         position.set(newPos);

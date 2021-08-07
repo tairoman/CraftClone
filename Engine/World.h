@@ -1,6 +1,4 @@
-
-#ifndef CRAFTBONE_WORLD_H
-#define CRAFTBONE_WORLD_H
+#pragma once
 
 #include <glm/fwd.hpp>
 #include <memory>
@@ -104,6 +102,3 @@ private:
 };
 
 }
-
-
-#endif //CRAFTBONE_WORLD_H

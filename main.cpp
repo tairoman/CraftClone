@@ -167,10 +167,6 @@ int main(int argc, char* argv[])
         // Display calculated FPS of the moving average
         stats.currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
 
-        if (!showingConfig) {
-            camera.update();
-        }
-
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_CULL_FACE);
@@ -235,6 +231,7 @@ int main(int argc, char* argv[])
             camera.move(deltaTime / 100.0f * vecNorm);
         }
 
+        //TODO: Make this a listen callbak on camera positon instead
         auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());
         if (currentChunkIndex.data() != newChunkIndex.data()) {
             currentChunkIndex = newChunkIndex;

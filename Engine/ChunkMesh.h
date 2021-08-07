@@ -1,5 +1,4 @@
-#ifndef CRAFTBONE_CHUNKMESH_H
-#define CRAFTBONE_CHUNKMESH_H
+#pragma once
 
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_uint3_sized.hpp>
@@ -28,5 +27,3 @@ private:
     Engine::Chunk* const m_chunk;
     std::vector<Vertex> m_vertices;
 };
-
-#endif //CRAFTBONE_CHUNKMESH_H

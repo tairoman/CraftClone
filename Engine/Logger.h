@@ -1,5 +1,4 @@
-#ifndef CRAFTBONE_LOGGER_H
-#define CRAFTBONE_LOGGER_H
+#pragma once
 
 #include <string>
 
@@ -11,5 +10,3 @@ namespace Logger {
 
     void registerGlLogger();
 }
-
-#endif //CRAFTBONE_LOGGER_H

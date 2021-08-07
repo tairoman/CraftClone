@@ -1,6 +1,4 @@
-
-#ifndef CRAFTBONE_WINDOWMANAGER_H
-#define CRAFTBONE_WINDOWMANAGER_H
+#pragma once
 
 #include <memory>
 
@@ -53,6 +51,3 @@ private:
     Uint32 m_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 };
 }
-
-
-#endif //CRAFTBONE_WINDOWMANAGER_H
