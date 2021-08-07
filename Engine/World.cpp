@@ -142,12 +142,12 @@ void World::render(const glm::vec3& playerPos, const Shader& shader, const glm::
 
 void World::renderChunks(const glm::vec3& playerPos, const Shader& shader, const glm::mat4& viewProjectionMatrix)
 {
-    std::unique_lock<std::mutex> lck(m_chunksMutex);
-    for (auto& [key, chunk] : chunks)
-    {
-        shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
-        chunk->render();
-    }
+        std::unique_lock<std::mutex> lck(m_chunksMutex);
+        for (auto& [key, chunk] : chunks)
+        {
+            shader.setUniform("modelViewProjectionMatrix", viewProjectionMatrix * chunk->getModelWorldMatrix());
+            chunk->render();
+        }
 }
 
 bool World::isWithinViewDistance(Chunk* chunk, const glm::vec3& playerPos) const

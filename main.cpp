@@ -83,9 +83,10 @@ void renderImGui()
     auto fpsText = std::string("FPS: ") + std::to_string(stats.currentFPS);
     ImGui::Text("%s", fpsText.c_str());
 
-    const auto posXText = std::string("x:") + std::to_string(playerCamera->getPosition().x);
-    const auto posYText = std::string("y:") + std::to_string(playerCamera->getPosition().y);
-    const auto posZText = std::string("z:") + std::to_string(playerCamera->getPosition().z);
+    const auto& playerPos = playerCamera->position.get();
+    const auto posXText = std::string("x:") + std::to_string(playerPos.x);
+    const auto posYText = std::string("y:") + std::to_string(playerPos.y);
+    const auto posZText = std::string("z:") + std::to_string(playerPos.z);
     ImGui::Text("%s", posXText.c_str());
     ImGui::Text("%s", posYText.c_str());
     ImGui::Text("%s", posZText.c_str());
@@ -141,7 +142,7 @@ int main(int argc, char* argv[])
     std::array<float,3> backgroundColor{0.2f, 0.2f, 0.8f};
 
     Engine::Camera camera(45.0f, float(s_windowManager.width()) / float(s_windowManager.height()), 0.01f, 500.0f);
-    camera.setPosition(glm::vec3(1000.0f, 100.0f, 1000.0f));
+    camera.position.set(glm::vec3(1000.0f, 100.0f, 1000.0f));
     playerCamera = &camera;
 
     auto world = Engine::World{texture};
@@ -149,7 +150,7 @@ int main(int argc, char* argv[])
     auto now = SDL_GetTicks();
     double avgDeltaTime = 1;
 
-    auto currentChunkIndex = ChunkIndex::fromWorldPos(playerCamera->getPosition());
+    auto currentChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());
     world.setPlayerChunk(currentChunkIndex);
 
     while (running) {
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
         glEnable(GL_DEPTH_TEST);
 
         simpleShader.use();
-        world.render(camera.getPosition(), simpleShader, camera.getProjection() * camera.getView());
+        world.render(camera.position.get(), simpleShader, camera.getProjection() * camera.getView());
 
         glUseProgram( 0 );
 
@@ -231,7 +232,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->getPosition());
+        auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());
         if (currentChunkIndex.data() != newChunkIndex.data()) {
             currentChunkIndex = newChunkIndex;
             world.setPlayerChunk(currentChunkIndex);

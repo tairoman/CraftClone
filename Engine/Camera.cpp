@@ -11,8 +11,8 @@ namespace Engine
 {
 
     Camera::Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
+        : position(glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_position = position;
         m_direction = direction;
         m_up = up;
 
@@ -31,17 +31,7 @@ namespace Engine
 
     void Camera::update()
     {
-        m_viewMatrix = glm::lookAt(m_position, m_position + m_direction, m_up);
-    }
-
-    void Camera::setPosition(glm::vec3 position)
-    {
-        m_position = position;
-    }
-
-    glm::vec3 Camera::getPosition() const
-    {
-        return m_position;
+        m_viewMatrix = glm::lookAt(position.get(), position.get() + m_direction, m_up);
     }
 
     void Camera::setDirection(glm::vec3 direction)
@@ -69,7 +59,7 @@ namespace Engine
 
     void Camera::moveLeft(float speed)
     {
-        m_position -= glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed;
+        position.set(position.get() - glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed);
     }
 
     void Camera::moveRight()
@@ -79,7 +69,7 @@ namespace Engine
 
     void Camera::moveRight(float speed)
     {
-        m_position += glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed;
+        position.set(position.get() + glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed);
     }
 
     void Camera::moveForward()
@@ -89,7 +79,7 @@ namespace Engine
 
     void Camera::moveForward(float speed)
     {
-        m_position += m_speedMultiplier * speed * m_direction;
+        position.set(position.get() + m_speedMultiplier * speed * m_direction);
     }
 
     void Camera::moveBack()
@@ -99,7 +89,7 @@ namespace Engine
 
     void Camera::moveBack(float speed)
     {
-        m_position -= m_speedMultiplier * speed * m_direction;
+        position.set(position.get() - m_speedMultiplier * speed * m_direction);
     }
 
     void Camera::setMoveSpeed(float speed)

@@ -67,6 +67,8 @@ set(SOURCE_FILES
         Engine/events/eventQueue.h
         Engine/utils/ChunkIndex.cpp
         Engine/utils/ChunkIndex.h
+        Engine/utils/Signal.h
+        Engine/utils/Property.h
         lib/PerlinNoise.hpp
 )
 
