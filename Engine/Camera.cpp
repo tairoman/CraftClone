@@ -10,21 +10,21 @@
 namespace Engine
 {
 
-    Camera::Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
-        : position(glm::vec3(0.0f, 0.0f, 0.0f))
+    Camera::Camera(glm::vec3 pos, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far)
+        : position(std::move(pos))
+        , m_direction(std::move(direction))
+        , m_up(std::move(up))
     {
-        m_direction = direction;
-        m_up = up;
-
-        setPerpective(fovy, aspectRatio, near, far);
+        setPerspective(fovy, aspectRatio, near, far);
     }
 
     Camera::Camera(float fovy, float aspectRatio, float near, float far)
+        : Camera(glm::vec3{ 0,0,0 }, glm::vec3{ 0.0f, 0.0f, -1.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }, fovy, aspectRatio, near, far)
     {
-        setPerpective(fovy, aspectRatio, near, far);
+        setPerspective(fovy, aspectRatio, near, far);
     }
 
-    void Camera::setPerpective(float fovy, float aspectRatio, float near, float far)
+    void Camera::setPerspective(float fovy, float aspectRatio, float near, float far)
     {
         m_projectionMatrix = glm::perspective(glm::radians(fovy), aspectRatio, near, far);
     }
@@ -52,44 +52,43 @@ namespace Engine
         m_direction = glm::vec3(pitch * yaw * glm::vec4(m_direction, 0.0f));
     }
 
-    void Camera::moveLeft()
-    {
-        this->moveLeft(m_moveSpeed);
-    }
-
     void Camera::moveLeft(float speed)
     {
-        position.set(position.get() - glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed);
-    }
-
-    void Camera::moveRight()
-    {
-        this->moveRight(m_moveSpeed);
+        move(glm::vec2{ -speed, 0 });
     }
 
     void Camera::moveRight(float speed)
     {
-        position.set(position.get() + glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier * speed);
-    }
-
-    void Camera::moveForward()
-    {
-        this->moveForward(m_moveSpeed);
+        move(glm::vec2{ speed, 0 });
     }
 
     void Camera::moveForward(float speed)
     {
-        position.set(position.get() + m_speedMultiplier * speed * m_direction);
-    }
-
-    void Camera::moveBack()
-    {
-        this->moveBack(m_moveSpeed);
+        move(glm::vec2{ 0, speed });
     }
 
     void Camera::moveBack(float speed)
     {
-        position.set(position.get() - m_speedMultiplier * speed * m_direction);
+        move(glm::vec2{ 0, -speed });
+    }
+
+    void Camera::move(const glm::vec2& moveVec)
+    {
+        if (glm::length(moveVec) == 0) {
+            return;
+        }
+
+        auto newPos = position.get();
+        
+        if (moveVec.x != 0) {
+            newPos += moveVec.x * glm::normalize(glm::cross(m_direction, m_up)) * m_speedMultiplier;
+        }
+
+        if (moveVec.y != 0) {
+            newPos += moveVec.y * m_speedMultiplier * m_direction;
+        }
+
+        position.set(newPos);
     }
 
     void Camera::setMoveSpeed(float speed)

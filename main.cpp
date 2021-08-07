@@ -212,17 +212,18 @@ int main(int argc, char* argv[])
         const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
 
         if (!showingConfig) {
+            auto moveVec = glm::vec2{ 0,0 };
             if (keyState[SDL_SCANCODE_W]) {
-                camera.moveForward(deltaTime / 100.0f);
+                moveVec.y += 1;
             }
             if (keyState[SDL_SCANCODE_S]) {
-                camera.moveBack(deltaTime / 100.0f);
+                moveVec.y -= 1;
             }
             if (keyState[SDL_SCANCODE_A]) {
-                camera.moveLeft(deltaTime / 100.0f);
+                moveVec.x -= 1;
             }
             if (keyState[SDL_SCANCODE_D]) {
-                camera.moveRight(deltaTime / 100.0f);
+                moveVec.x += 1;
             }
             if (keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(10);
@@ -230,6 +231,8 @@ int main(int argc, char* argv[])
             if (!keyState[SDL_SCANCODE_LSHIFT]) {
                 camera.setSpeedMultiplier(1);
             }
+            const auto vecNorm = (glm::length(moveVec) > 0 ? glm::normalize(moveVec) : moveVec);
+            camera.move(deltaTime / 100.0f * vecNorm);
         }
 
         auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());

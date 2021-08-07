@@ -14,7 +14,7 @@ class Camera
 
 public:
 
-    Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
+    Camera(glm::vec3 pos, glm::vec3 direction, glm::vec3 up, float fovy, float aspectRatio, float near, float far);
 
     Camera(float fovy, float aspectRatio, float near, float far);
 
@@ -26,27 +26,21 @@ public:
 
     void setRotSpeed(float speed);
 
-    void setPerpective(float fovy, float aspectRatio, float near, float far);
+    void setPerspective(float fovy, float aspectRatio, float near, float far);
 
     void update();
 
     void rotate(float deltaX, float deltaY);
 
-    void moveLeft();
-
     void moveLeft(float speed);
-
-    void moveRight();
 
     void moveRight(float speed);
 
-    void moveForward();
-
     void moveForward(float speed);
 
-    void moveBack();
-
     void moveBack(float speed);
+
+    void move(const glm::vec2& moveVec);
 
     void setSpeedMultiplier(float mult);
 
@@ -60,8 +54,8 @@ private:
     glm::mat4 m_viewMatrix;
     glm::mat4 m_projectionMatrix;
 
-    glm::vec3 m_direction = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 m_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 m_direction;
+    glm::vec3 m_up;
 
     float m_moveSpeed = 0.1f;
     float m_rotSpeed = 0.01f;
