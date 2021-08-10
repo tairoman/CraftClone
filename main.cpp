@@ -103,6 +103,8 @@ int main(int argc, char* argv[])
     //Logger::registerGlLogger();
 #endif
 
+    std::cout << "Running main thread with id: " << std::this_thread::get_id() << "\n";
+
     SDL_Window* window = Engine::WindowManager::instance().sdlWindow();
 
     ImGui_ImplSdlGL3_Init(window);
@@ -145,13 +147,10 @@ int main(int argc, char* argv[])
     camera.position.set(glm::vec3(1000.0f, 100.0f, 1000.0f));
     playerCamera = &camera;
 
-    auto world = Engine::World{texture};
+    auto world = Engine::World{texture, playerCamera};
 
     auto now = SDL_GetTicks();
     double avgDeltaTime = 1;
-
-    auto currentChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());
-    world.setPlayerChunk(currentChunkIndex);
 
     while (running) {
 
@@ -229,13 +228,6 @@ int main(int argc, char* argv[])
             }
             const auto vecNorm = (glm::length(moveVec) > 0 ? glm::normalize(moveVec) : moveVec);
             camera.move(deltaTime / 100.0f * vecNorm);
-        }
-
-        //TODO: Make this a listen callbak on camera positon instead
-        auto newChunkIndex = ChunkIndex::fromWorldPos(playerCamera->position.get());
-        if (currentChunkIndex.data() != newChunkIndex.data()) {
-            currentChunkIndex = newChunkIndex;
-            world.setPlayerChunk(currentChunkIndex);
         }
     }
 

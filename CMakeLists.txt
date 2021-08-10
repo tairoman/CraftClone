@@ -64,7 +64,9 @@ set(SOURCE_FILES
         Engine/events/Event.cpp
         Engine/events/Event.h
         Engine/events/EventQueue.cpp
-        Engine/events/eventQueue.h
+        Engine/events/EventQueue.h
+        Engine/events/EventThread.cpp
+        Engine/events/EventThread.h
         Engine/utils/ChunkIndex.cpp
         Engine/utils/ChunkIndex.h
         Engine/utils/Signal.h
