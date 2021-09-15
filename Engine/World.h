@@ -1,25 +1,14 @@
 #pragma once
 
 #include <glm/fwd.hpp>
-#include <memory>
-#include <vector>
-#include <queue>
-#include <unordered_map>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
-#include <optional>
 
-#include "Chunk.h"
-#include "Shader.h"
 #include "Camera.h"
+#include "Chunk.h"
 #include "ChunkManager.h"
 #include "events/Event.h"
 #include "events/EventQueue.h"
 #include "utils/Chunkindex.h"
-
-#include "../lib/PerlinNoise.hpp"
+#include "Shader.h"
 
 namespace Engine
 {

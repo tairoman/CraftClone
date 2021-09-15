@@ -22,7 +22,7 @@ public:
     RemoveChunksEvent(std::vector<std::size_t> chunkHashes) : Event(100), m_chunkHashes(std::move(chunkHashes)) {}
     ~RemoveChunksEvent() override = default;
 
-    const std::vector<std::size_t>& chunkHashes() const { return m_chunkHashes; };
+    [[nodiscard]] const std::vector<std::size_t>& chunkHashes() const { return m_chunkHashes; };
 
 private:
     std::vector<std::size_t> m_chunkHashes;
@@ -39,8 +39,8 @@ public:
 
     ~GenerateChunkEvent() override = default;
 
-    const ChunkIndex& origin() const { return m_originIndex; }
-    const ChunkIndex& offset() const { return m_offsetIndex; }
+    [[nodiscard]] const ChunkIndex& origin() const { return m_originIndex; }
+    [[nodiscard]] const ChunkIndex& offset() const { return m_offsetIndex; }
 
 private:
     ChunkIndex m_originIndex;
@@ -53,7 +53,7 @@ public:
     NewOriginChunkEvent(ChunkIndex index) : Event(1), m_index(std::move(index)) {}
     ~NewOriginChunkEvent() override = default;
 
-    const ChunkIndex& index() const { return m_index; }
+    [[nodiscard]] const ChunkIndex& index() const { return m_index; }
 
 private:
     ChunkIndex m_index;
@@ -65,6 +65,7 @@ class ChunkManagerThread : public EventThread
 {
 public:
     ChunkManagerThread(ChunkManager* parent);
+    ~ChunkManagerThread() override = default;
 
     void onStart() override;
     void handleEvent(Event* ev) override;

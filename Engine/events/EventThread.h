@@ -5,23 +5,24 @@
 
 #include "../utils/Signal.h"
 
-#include <thread>
-#include <memory>
 #include <atomic>
 #include <functional>
+#include <memory>
+#include <thread>
 
 class EventThread
 {
 public:
 	EventThread();
+	virtual ~EventThread() = default;
 
 	void stop();
 	void join();
 	
 	void pushEvent(std::unique_ptr<Event> ev);
 
-	virtual void onStart() {};
-	virtual void onFinish() {};
+	virtual void onStart() {}
+	virtual void onFinish() {}
 	virtual void handleEvent(Event* ev) = 0;
 
 private:

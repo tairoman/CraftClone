@@ -1,14 +1,14 @@
 #pragma once
 
+#include <gl/glew.h>
 #include <glm/fwd.hpp>
-#include <GL/glew.h>
 
-#include <optional>
 #include <memory>
+#include <optional>
 
-#include "utils/Property.h"
-#include "utils/Chunkindex.h"
 #include "events/EventThread.h"
+#include "utils/Chunkindex.h"
+#include "utils/Property.h"
 
 #include "../lib/PerlinNoise.hpp"
 

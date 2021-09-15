@@ -9,7 +9,7 @@ public:
     explicit Event(std::size_t priority);
     virtual ~Event();
 
-    std::size_t priority() const;
+    [[nodiscard]] std::size_t priority() const;
 
     bool operator<(const Event& b) const;
 private:

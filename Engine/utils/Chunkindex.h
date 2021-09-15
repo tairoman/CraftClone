@@ -11,9 +11,9 @@ public:
 	explicit ChunkIndex(glm::ivec3 index);
 
 	static ChunkIndex fromWorldPos(const glm::ivec3& pos);
-	glm::ivec3 toWorldPos() const;
+	[[nodiscard]] glm::ivec3 toWorldPos() const;
 
-	const glm::ivec3& data() const;
+	[[nodiscard]] const glm::ivec3& data() const;
 
 private:
 	glm::ivec3 m_index = { 0,0,0 };

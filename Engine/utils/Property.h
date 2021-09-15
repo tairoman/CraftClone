@@ -7,7 +7,7 @@ class Property
 {
 public:
 	Property() = default;
-	Property(T value) : m_value(std::move(value)) {};
+	Property(T value) : m_value(std::move(value)) {}
 
 	void set(T value);
 	const T& get() const;

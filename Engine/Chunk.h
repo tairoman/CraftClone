@@ -2,10 +2,10 @@
 
 #include <array>
 
-#include <GL/glew.h>
+#include <gl/glew.h>
 #include <glm/detail/qualifier.hpp>
-#include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_precision.hpp>
 
 #include "ChunkMesh.h"
 
@@ -54,7 +54,8 @@ namespace Engine
         [[nodiscard]] BlockType get(int x, int y, int z) const;
         void set(int x, int y, int z, BlockType type);
 
-        [[nodiscard]] const glm::mat4& getModelWorldMatrix() const {
+        [[nodiscard]] const glm::mat4& getModelWorldMatrix() const
+        {
             return m_modelWorldMatrix;
         }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mutex>
 #include <atomic>
+#include <mutex>
 #include <queue>
 
 class Event;
