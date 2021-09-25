@@ -27,6 +27,8 @@
 #include "Engine/World.h"
 #include "Engine/Logger.h"
 #include "Engine/utils/Chunkindex.h"
+#include "Engine/GameEventDispatcher.h"
+#include "Engine/FpsCounter.h"
 
 struct Config
 {
@@ -149,22 +151,42 @@ int main(int argc, char* argv[])
 
     auto world = Engine::World{texture, playerCamera};
 
-    auto now = SDL_GetTicks();
-    double avgDeltaTime = 1;
+    GameEventDispatcher gameEvents;
+    FpsCounter fpsCounter{ gameEvents };
+
+    fpsCounter.onFpsChanged.listen([](const auto& deltaTime) {
+        stats.currentFPS = deltaTime;
+    });
+
+    gameEvents.onNewFrame.listen([&camera](const auto& deltaTime) {
+        const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
+
+        if (!showingConfig) {
+            auto moveVec = glm::vec2{ 0,0 };
+            if (keyState[SDL_SCANCODE_W]) {
+                moveVec.y += 1;
+            }
+            if (keyState[SDL_SCANCODE_S]) {
+                moveVec.y -= 1;
+            }
+            if (keyState[SDL_SCANCODE_A]) {
+                moveVec.x -= 1;
+            }
+            if (keyState[SDL_SCANCODE_D]) {
+                moveVec.x += 1;
+            }
+            if (keyState[SDL_SCANCODE_LSHIFT]) {
+                camera.setSpeedMultiplier(10);
+            }
+            if (!keyState[SDL_SCANCODE_LSHIFT]) {
+                camera.setSpeedMultiplier(1);
+            }
+            const auto vecNorm = (glm::length(moveVec) > 0 ? glm::normalize(moveVec) : moveVec);
+            camera.move(deltaTime / 100.0f * vecNorm);
+        }
+    });
 
     while (running) {
-
-        const auto last = now;
-        now = SDL_GetTicks();
-
-        const auto deltaTime = now - last;
-
-        // Moving average of time spent in game loop
-        const auto decayFactor = 0.95;
-        avgDeltaTime = decayFactor * avgDeltaTime + (1.0 - decayFactor) * deltaTime;
-		
-        // Display calculated FPS of the moving average
-        stats.currentFPS = static_cast<std::size_t>(std::round(1000 / avgDeltaTime));
 
         glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -204,31 +226,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
-
-        if (!showingConfig) {
-            auto moveVec = glm::vec2{ 0,0 };
-            if (keyState[SDL_SCANCODE_W]) {
-                moveVec.y += 1;
-            }
-            if (keyState[SDL_SCANCODE_S]) {
-                moveVec.y -= 1;
-            }
-            if (keyState[SDL_SCANCODE_A]) {
-                moveVec.x -= 1;
-            }
-            if (keyState[SDL_SCANCODE_D]) {
-                moveVec.x += 1;
-            }
-            if (keyState[SDL_SCANCODE_LSHIFT]) {
-                camera.setSpeedMultiplier(10);
-            }
-            if (!keyState[SDL_SCANCODE_LSHIFT]) {
-                camera.setSpeedMultiplier(1);
-            }
-            const auto vecNorm = (glm::length(moveVec) > 0 ? glm::normalize(moveVec) : moveVec);
-            camera.move(deltaTime / 100.0f * vecNorm);
-        }
+        gameEvents.processLoop();
     }
 
     SDL_Quit();
