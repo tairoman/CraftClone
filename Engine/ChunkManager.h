@@ -9,6 +9,7 @@
 #include "events/EventThread.h"
 #include "utils/Chunkindex.h"
 #include "utils/Property.h"
+#include "utils/Observer.h"
 
 #include "../lib/PerlinNoise.hpp"
 
@@ -38,6 +39,8 @@ public:
 	void renderChunks(const glm::vec3& playerPos, const Engine::Shader& shader, const glm::mat4& viewProjectionMatrix);
 
 private:
+	Observer m_observer;
+
 	std::unique_ptr<ChunkManagerThread> m_thread;
 	std::optional<ChunkIndex> m_playerChunk = {};
 	mutable std::mutex m_chunksMutex;

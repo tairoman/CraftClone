@@ -3,7 +3,7 @@
 
 FpsCounter::FpsCounter(GameEventDispatcher& gameEvents)
 {
-	gameEvents.onNewFrame.listen([this](uint32_t deltaTime) {
+	gameEvents.onNewFrame.listen(m_observer, [this](uint32_t deltaTime) {
 		m_framessSinceLastReset++;
 		m_timeSinceLastReset += deltaTime;
 		if (m_timeSinceLastReset >= 1000) {

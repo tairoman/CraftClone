@@ -179,7 +179,7 @@ ChunkManager::ChunkManager(GLuint texture)
 {
     m_chunks.reserve(viewDistanceInChunks.x * viewDistanceInChunks.y * viewDistanceInChunks.z);
 
-    sourceChunk.onChange.listen([this](const glm::ivec3& index) {
+    sourceChunk.onChange.listen(m_observer, [this](const glm::ivec3& index) {
         m_thread->pushEvent(std::make_unique<NewOriginChunkEvent>(ChunkIndex{ index }));
     });
 }

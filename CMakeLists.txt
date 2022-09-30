@@ -70,7 +70,11 @@ set(SOURCE_FILES
         Engine/utils/ChunkIndex.cpp
         Engine/utils/ChunkIndex.h
         Engine/utils/Signal.h
+        Engine/utils/ISignal.h
         Engine/utils/Property.h
+        Engine/utils/Essentials.h
+        Engine/utils/Observer.h
+        Engine/utils/IObserver.h
         lib/PerlinNoise.hpp
 )
 

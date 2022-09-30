@@ -4,13 +4,14 @@
 #include <optional>
 
 #include "utils/Signal.h"
+#include "utils/Observer.h"
 
 class GameEventDispatcher;
 
 class FpsCounter
 {
 public:
-	FpsCounter(GameEventDispatcher& gameEvents);
+	explicit FpsCounter(GameEventDispatcher& gameEvents);
 
 	std::optional<uint32_t> fpsWithoutReset() const;
 	std::optional<uint32_t> fpsWithReset();
@@ -18,6 +19,7 @@ public:
 	Signal<uint32_t> onFpsChanged;
 
 private:
+	Observer m_observer;
 	uint32_t m_framessSinceLastReset = 0;
 	uint32_t m_timeSinceLastReset = 0;
 };

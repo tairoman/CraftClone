@@ -21,7 +21,7 @@ World::World(GLuint texture, Camera* cam)
 {
     m_chunks.sourceChunk.set(ChunkIndex::fromWorldPos(cam->position.get()).data());
 
-    cam->position.onChange.listen([this](const glm::vec3& pos) {
+    cam->position.onChange.listen(m_observer, [this](const glm::vec3& pos) {
         auto newChunkIndex = ChunkIndex::fromWorldPos(pos);
         m_chunks.sourceChunk.set(newChunkIndex.data());
     });

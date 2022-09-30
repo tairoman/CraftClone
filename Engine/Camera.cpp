@@ -17,11 +17,11 @@ namespace Engine
     {
         setPerspective(fovy, aspectRatio, near, far);
 
-        position.onChange.listen([this](const glm::vec3&) {
+        position.onChange.listen(m_observer, [this](const glm::vec3&) {
             updateViewMatrix();
         });
 
-        direction.onChange.listen([this](const glm::vec3&) {
+        direction.onChange.listen(m_observer, [this](const glm::vec3&) {
             updateViewMatrix();
         });
     }

@@ -27,6 +27,7 @@
 #include "Engine/World.h"
 #include "Engine/Logger.h"
 #include "Engine/utils/Chunkindex.h"
+#include "Engine/utils/Observer.h"
 #include "Engine/GameEventDispatcher.h"
 #include "Engine/FpsCounter.h"
 
@@ -154,11 +155,13 @@ int main(int argc, char* argv[])
     GameEventDispatcher gameEvents;
     FpsCounter fpsCounter{ gameEvents };
 
-    fpsCounter.onFpsChanged.listen([](const auto& deltaTime) {
+    Observer m_observer;
+
+    fpsCounter.onFpsChanged.listen(m_observer, [](const auto& deltaTime) {
         stats.currentFPS = deltaTime;
     });
 
-    gameEvents.onNewFrame.listen([&camera](const auto& deltaTime) {
+    gameEvents.onNewFrame.listen(m_observer, [&camera](const auto& deltaTime) {
         const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
 
         if (!showingConfig) {

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <functional>
-#include <vector>
+#include <unordered_map>
+
+#include "IObserver.h"
+#include "ISignal.h"
 
 template <typename T>
-class Signal
+class Signal : public ISignal
 {
 	using CallbackT = std::function<void(const T&)>;
 public:
@@ -13,22 +16,67 @@ public:
 		m_callbacks.reserve(5);
 	}
 
-	void trigger(const T& value);
-	void listen(CallbackT callback);
+	~Signal() override
+	{
+		for (auto& [observer, _] : m_callbacks) {
+			observer->removeConnectedSignal(this);
+		}
+	}
+
+	void unsubscribe(IObserver* observer) override
+	{
+		m_callbacks.erase(observer);
+	}
+
+	void trigger(const T& value)
+	{
+		for (auto& [_, func] : m_callbacks) {
+			func(value);
+		}
+	}
+
+	void listen(IObserver& observer, CallbackT callback)
+	{
+		m_callbacks.insert({ &observer, std::move(callback) });
+		observer.addConnectedSignal(this);
+	}
 private:
-	std::vector<CallbackT> m_callbacks;
+	std::unordered_map<IObserver*, CallbackT> m_callbacks;
 };
 
-template<typename T>
-inline void Signal<T>::trigger(const T& value)
+class VoidSignal : public ISignal
 {
-	for (auto& c : m_callbacks) {
-		c(value);
+	using CallbackT = std::function<void()>;
+public:
+	VoidSignal()
+	{
+		m_callbacks.reserve(5);
 	}
-}
 
-template<typename T>
-inline void Signal<T>::listen(CallbackT callback)
-{
-	m_callbacks.push_back(std::move(callback));
-}
+	~VoidSignal() override
+	{
+		for (auto& [observer, _] : m_callbacks) {
+			observer->removeConnectedSignal(this);
+		}
+	}
+
+	void unsubscribe(IObserver* observer) override
+	{
+		m_callbacks.erase(observer);
+	}
+
+	void trigger()
+	{
+		for (auto& [_, func] : m_callbacks) {
+			func();
+		}
+	}
+
+	void listen(IObserver& observer, CallbackT callback)
+	{
+		m_callbacks.insert({ &observer, callback });
+		observer.addConnectedSignal(this);
+	}
+private:
+	std::unordered_map<IObserver*, CallbackT> m_callbacks;
+};

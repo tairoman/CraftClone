@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "utils/Property.h"
+#include "utils/Observer.h"
 
 namespace Engine
 {
@@ -48,6 +49,8 @@ public:
     Property<glm::vec3> direction;
 
 private:
+    Observer m_observer;
+
     glm::mat4 m_viewMatrix;
     glm::mat4 m_projectionMatrix;
 
