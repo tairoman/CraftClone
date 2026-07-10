@@ -29,7 +29,6 @@
 #include "Engine/utils/Chunkindex.h"
 #include "Engine/utils/Observer.h"
 #include "Engine/GameEventDispatcher.h"
-#include "Engine/FpsCounter.h"
 
 struct Config
 {
@@ -153,13 +152,8 @@ int main(int argc, char* argv[])
     auto world = Engine::World{texture, playerCamera};
 
     GameEventDispatcher gameEvents;
-    FpsCounter fpsCounter{ gameEvents };
 
     Observer m_observer;
-
-    fpsCounter.onFpsChanged.listen(m_observer, [](const auto& deltaTime) {
-        stats.currentFPS = deltaTime;
-    });
 
     gameEvents.onNewFrame.listen(m_observer, [&camera](const auto& deltaTime) {
         const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
@@ -188,6 +182,10 @@ int main(int argc, char* argv[])
             camera.move(deltaTime / 100.0f * vecNorm);
         }
     });
+
+    uint32_t lastFrameTime = SDL_GetTicks();
+    uint32_t framesThisSecond = 0;
+    uint32_t timeElapsedThisSecond = lastFrameTime;
 
     while (running) {
 
@@ -230,6 +228,19 @@ int main(int argc, char* argv[])
         }
 
         gameEvents.processLoop();
+
+        const uint32_t currFrameTime = SDL_GetTicks();
+        const uint32_t deltaTime = currFrameTime - lastFrameTime;
+        lastFrameTime = currFrameTime;
+
+        framesThisSecond++;
+        timeElapsedThisSecond += deltaTime;
+        if (timeElapsedThisSecond >= 1000)
+        {
+            stats.currentFPS = framesThisSecond;
+            framesThisSecond = 0;
+            timeElapsedThisSecond = timeElapsedThisSecond - 1000;
+        }
     }
 
     SDL_Quit();

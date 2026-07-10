@@ -78,7 +78,7 @@ set(SOURCE_FILES
         lib/PerlinNoise.hpp
 )
 
-add_executable(CraftBone ${SOURCE_FILES} ${imgui} "Engine/GameEventDispatcher.h" "Engine/GameEventDispatcher.cpp" "Engine/FpsCounter.h" "Engine/FpsCounter.cpp")
+add_executable(CraftBone ${SOURCE_FILES} ${imgui} "Engine/GameEventDispatcher.h" "Engine/GameEventDispatcher.cpp")
 
 if (WIN32)
     set_target_properties(CraftBone PROPERTIES LINK_FLAGS /SUBSYSTEM:CONSOLE)
